@@ -1,0 +1,176 @@
+<title>米善 米袋 コシヒカリ版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;600;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  /* 印刷モック確認用 — 画面テーマに依らず紙見本の見た目で固定 */
+  body{margin:0;background:#C9C4B8;color:#26231E;
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;font-size:14px;line-height:1.7;}
+  .wrap{max-width:1600px;margin:0 auto;padding:28px 24px 80px;}
+  h1{font-family:"Noto Serif JP",serif;font-weight:700;font-size:22px;margin:0 0 2px;color:#26231E;}
+  .sub{font-size:12.5px;color:#57534A;margin:0 0 6px;}
+  .rowlabel{font-size:12.5px;font-weight:700;letter-spacing:.06em;color:#26231E;
+    margin:34px 0 14px;padding-left:10px;border-left:4px solid #A93226;}
+  .row{display:flex;align-items:flex-end;gap:26px;overflow-x:auto;padding:10px 4px 6px;}
+  .unit{flex:none;text-align:center;}
+  .bag{position:relative;background:#F6F1E2;border:1px solid #D6CFBA;
+    box-shadow:0 2px 10px rgba(60,50,30,.18);overflow:hidden;text-align:left;}
+  .cap{font-size:11px;color:#57534A;margin-top:8px;}
+  .abs{position:absolute;}
+  .vert{writing-mode:vertical-rl;}
+  .serif{font-family:"Noto Serif JP",serif;}
+  .note{background:#F0EBDC;border:1px solid #D6CFBA;padding:12px 18px;margin-top:30px;
+    font-size:12.5px;color:#57534A;max-width:70em;}
+  .note b{color:#26231E;}
+</style>
+
+<div class="wrap">
+  <h1>米善 米袋モック — コシヒカリ版</h1>
+  <p class="sub">彩のきずな版(A 大字 02整理版/C 三角面の鶴)と同一レイアウト・同一縮尺で品種表記のみ差し替え。2 / 5 / 10 / 15 / 20kg。寸法はすべて(仮)。</p>
+
+  <div class="rowlabel">A 大字(02整理版)— コシヒカリ — 2 / 5 / 10 / 15 / 20kg(同一縮尺)</div>
+  <div class="row" id="rowA"></div>
+
+  <div class="rowlabel">C 三角面の鶴 — コシヒカリ — 2 / 5 / 10 / 15 / 20kg(同一縮尺)</div>
+  <div class="row" id="rowC"></div>
+
+  <div class="note">
+    <b>品種識別のメモ:</b> 本版は彩のきずな版と同じ朱を使用(2色刷りの版を共通化し、品種名の文字だけ差し替え=版代を最小化する前提)。
+    棚や倉庫で品種を色で見分けたい場合は、コシヒカリのみ鶴・角印を<b>墨</b>にする(朱⇄墨の役割を反転する)案が、インク追加なしで実現できる代替案。
+    文字・数値はモック用のプレースホルダで、正式データはIllustratorで制作し、一括表示欄(裏面)・法定表示は別途確定。
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="hatch" width="7" height="7" patternTransform="rotate(115)" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="none"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#F6F1E2" stroke-width="1.6" opacity=".55"/>
+    </pattern>
+  </defs>
+</svg>
+
+<script>
+(function(){
+  var S = 0.72; // px per mm
+  var sizes = [
+    {kg:"2",  w:170, h:250, lb:"4.4"},
+    {kg:"5",  w:270, h:420, lb:"11.0"},
+    {kg:"10", w:340, h:560, lb:"22.0"},
+    {kg:"15", w:380, h:620, lb:"33.1"},
+    {kg:"20", w:420, h:680, lb:"44.1"}
+  ];
+  var INK="#221F1A", GREY="#8A8478", SHU="#A93226", SHU2="#C96B5B", SHU3="#E2B3A8";
+
+  // 三角面の折り鶴(viewBox 0 0 400 340)。tone: 0=朱, 1=淡朱, 2=中間
+  var cranePolys = [
+    // くちばし・頭・首
+    {p:"16,92 54,80 54,98", t:0},
+    {p:"54,74 82,66 74,100 54,98", t:0},
+    {p:"70,98 84,78 128,196", t:2},
+    {p:"70,98 128,196 112,210", t:0},
+    // 胴体
+    {p:"112,210 196,172 176,262", t:0},
+    {p:"196,172 252,226 176,262", t:2},
+    {p:"112,210 176,262 148,278", t:1},
+    // 前翼(大・扇)
+    {p:"162,196 108,34 140,22", t:0},
+    {p:"162,196 140,22 176,14", t:1},
+    {p:"162,196 176,14 210,22", t:0},
+    {p:"162,196 210,22 226,44", t:2},
+    // 後翼
+    {p:"212,200 240,30 272,44", t:1},
+    {p:"212,200 272,44 306,74", t:0},
+    {p:"212,200 306,74 322,104", t:1},
+    // 尾
+    {p:"252,226 368,168 296,258", t:0},
+    {p:"252,226 342,140 368,168", t:1}
+  ];
+  function craneSvg(color3){
+    var tones = color3 || [SHU, SHU3, SHU2];
+    var body = cranePolys.map(function(g){
+      return '<polygon points="'+g.p+'" fill="'+tones[g.t]+'"/>';
+    }).join("");
+    var hatch = cranePolys.map(function(g){
+      return '<polygon points="'+g.p+'" fill="url(#hatch)"/>';
+    }).join("");
+    return body + hatch;
+  }
+  function sealSvg(x,y,d){
+    // 朱丸+白抜き鶴の印
+    var mono = cranePolys.map(function(g){
+      return '<polygon points="'+g.p+'" fill="#F6F1E2"/>';
+    }).join("");
+    return '<svg class="abs" style="left:'+x+'px;top:'+y+'px" width="'+d+'" height="'+d+'" viewBox="0 0 100 100">'
+      +'<circle cx="50" cy="50" r="46" fill="none" stroke="'+SHU+'" stroke-width="4"/>'
+      +'<circle cx="50" cy="50" r="40" fill="'+SHU+'"/>'
+      +'<g transform="translate(14,20) scale(0.18)">'+mono+'</g></svg>';
+  }
+  function px(n){ return Math.round(n*10)/10 + "px"; }
+  function seam(top,W){
+    return '<div class="abs" style="left:'+px(W*0.05)+';right:'+px(W*0.05)+';top:'+top
+      +';border-top:1px dashed '+SHU+';opacity:.45"></div>';
+  }
+
+  function bagA(z){
+    var W=z.w*S, H=z.h*S;
+    var h='';
+    h+=seam(px(H*0.085),W);
+    h+=sealSvg(W*0.06,H*0.105,W*0.14);
+    // 右上: 品種(縦・墨)
+    h+='<div class="abs vert serif" style="right:'+px(W*0.055)+';top:'+px(H*0.10)+';font-size:'+px(W*0.05)+';letter-spacing:.34em;color:'+INK+'">コシヒカリ</div>';
+    // 左列: こめよし / 善 / KOMEYOSHI
+    h+='<div class="abs vert" style="left:'+px(W*0.075)+';top:'+px(H*0.30)+';font-size:'+px(W*0.036)+';letter-spacing:.5em;color:'+INK+'">こめよし</div>';
+    h+='<div class="abs serif" style="left:'+px(W*0.055)+';top:'+px(H*0.435)+';font-size:'+px(W*0.085)+';font-weight:700;color:'+SHU+'">善</div>';
+    h+='<div class="abs vert" style="left:'+px(W*0.078)+';top:'+px(H*0.545)+';font-size:'+px(W*0.028)+';letter-spacing:.42em;color:'+SHU+'">KOMEYOSHI</div>';
+    // 中央: 大字「米」
+    h+='<div class="abs serif" style="left:50%;top:'+px(H*0.42)+';transform:translate(-50%,-50%);font-size:'+px(W*0.82)+';font-weight:900;line-height:1;color:'+INK+'">米</div>';
+    // 右: ローマ字(縦・グレー)
+    h+='<div class="abs vert" style="right:'+px(W*0.06)+';top:'+px(H*0.42)+';font-size:'+px(W*0.026)+';letter-spacing:.6em;color:'+GREY+'">KOSHIHIKARI</div>';
+    // 右下ブロック
+    h+='<div class="abs" style="right:'+px(W*0.06)+';bottom:'+px(H*0.055)+';text-align:right;line-height:1.5">'
+      +'<div style="font-size:'+px(W*0.033)+';color:'+INK+'">埼玉県川越産</div>'
+      +'<div style="font-size:'+px(W*0.023)+';color:'+GREY+'">Grown in Kawagoe, Saitama, Japan</div>'
+      +'<div class="serif" style="font-size:'+px(W*0.095)+';color:'+INK+';line-height:1.25">'+z.kg+'<span style="font-size:'+px(W*0.04)+'"> kg</span></div>'
+      +'<div style="font-size:'+px(W*0.021)+';letter-spacing:.12em;color:'+GREY+'">NET WT. '+z.lb+' lb</div></div>';
+    // 左下ブロック
+    h+='<div class="abs" style="left:'+px(W*0.06)+';bottom:'+px(H*0.055)+';line-height:1.6">'
+      +'<div style="font-size:'+px(W*0.03)+';font-weight:700;color:'+INK+'">SoA Co., Ltd.</div>'
+      +'<div style="font-size:'+px(W*0.021)+';letter-spacing:.06em;color:'+GREY+'">Kawagoe · Saitama · Japan&nbsp;&nbsp;soa-komeyoshi.com</div></div>';
+    return h;
+  }
+
+  function bagC(z){
+    var W=z.w*S, H=z.h*S;
+    var h='';
+    h+=seam(px(H*0.085),W);
+    h+=sealSvg(W*0.06,H*0.105,W*0.13);
+    // 鶴(中央上)
+    var cw=W*0.80, ch=cw*0.85;
+    h+='<svg class="abs" style="left:50%;top:'+px(H*0.14)+';transform:translateX(-50%)" width="'+cw+'" height="'+ch+'" viewBox="0 0 400 340">'+craneSvg()+'</svg>';
+    // 下部ブロック
+    var by=H*0.695;
+    h+='<div class="abs" style="left:'+px(W*0.07)+';top:'+px(by)+';line-height:1.5">'
+      +'<div class="serif" style="font-size:'+px(W*0.105)+';font-weight:600;letter-spacing:.28em;color:'+INK+';border-bottom:'+Math.max(1,W*0.006)+'px solid '+SHU+';padding-bottom:'+px(W*0.015)+'">米 善</div>'
+      +'<div style="font-size:'+px(W*0.026)+';letter-spacing:.5em;color:'+SHU+';margin-top:'+px(W*0.02)+'">KOMEYOSHI</div>'
+      +'<div class="serif" style="font-size:'+px(W*0.037)+';letter-spacing:.14em;color:'+INK+';margin-top:'+px(W*0.03)+'">コシヒカリ&nbsp;&nbsp;KOSHI HIKARI</div></div>';
+    h+='<div class="abs" style="right:'+px(W*0.06)+';top:'+px(by)+';text-align:right;line-height:1.5">'
+      +'<div style="font-size:'+px(W*0.031)+';color:'+INK+'">埼玉県川越産</div>'
+      +'<div style="font-size:'+px(W*0.022)+';color:'+GREY+'">Grown in Kawagoe, Saitama, Japan</div>'
+      +'<div class="serif" style="font-size:'+px(W*0.09)+';color:'+INK+';line-height:1.25">'+z.kg+'<span style="font-size:'+px(W*0.038)+'"> kg</span></div>'
+      +'<div style="font-size:'+px(W*0.02)+';letter-spacing:.12em;color:'+GREY+'">NET WT. '+z.lb+' lb</div></div>';
+    h+='<div class="abs" style="left:0;right:0;bottom:'+px(H*0.03)+';text-align:center;font-size:'+px(W*0.021)+';letter-spacing:.1em;color:'+GREY+'">SoA Co., Ltd.&nbsp;·&nbsp;Kawagoe · Saitama · Japan&nbsp;·&nbsp;soa-komeyoshi.com</div>';
+    return h;
+  }
+
+  function render(rowId, fn){
+    var html = sizes.map(function(z){
+      var W=Math.round(z.w*S), H=Math.round(z.h*S);
+      return '<div class="unit"><div class="bag" style="width:'+W+'px;height:'+H+'px">'+fn(z)+'</div>'
+        +'<div class="cap">'+z.kg+'kg '+z.w+'×'+z.h+'mm(仮)</div></div>';
+    }).join("");
+    document.getElementById(rowId).innerHTML = html;
+  }
+  render("rowA", bagA);
+  render("rowC", bagC);
+})();
+</script>
