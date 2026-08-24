@@ -1,0 +1,219 @@
+<title>山元紙包装社 電話準備シート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F6F1E5;        /* 生成り */
+  --panel:#FDFAF2;
+  --panel2:#EFE7D4;
+  --ink:#26231E;        /* 墨 */
+  --muted:#6E675B;
+  --shu:#AE3B2A;        /* 朱 */
+  --shu-soft:#C05B44;
+  --line:#D8CDB4;
+  --hair:#E4DBC6;
+  --ok-bg:#E8EDDE; --ok-ink:#3E5A32;
+  --warn-bg:#F4E3C8; --warn-ink:#7A5314;
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1E1B16; --panel:#26221B; --panel2:#2E2921;
+    --ink:#EDE6D6; --muted:#A79E8D;
+    --shu:#D96A50; --shu-soft:#C05B44;
+    --line:#4A4234; --hair:#39332A;
+    --ok-bg:#2C3324; --ok-ink:#AFC69A;
+    --warn-bg:#3A3120; --warn-ink:#DDB86A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1E1B16; --panel:#26221B; --panel2:#2E2921;
+  --ink:#EDE6D6; --muted:#A79E8D;
+  --shu:#D96A50; --shu-soft:#C05B44;
+  --line:#4A4234; --hair:#39332A;
+  --ok-bg:#2C3324; --ok-ink:#AFC69A;
+  --warn-bg:#3A3120; --warn-ink:#DDB86A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  font-size:15px;line-height:1.85;}
+.wrap{max-width:780px;margin:0 auto;padding:40px 20px 90px;}
+.serif{font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;}
+.eyebrow{font-size:11.5px;letter-spacing:.22em;color:var(--shu);font-weight:700;}
+h1{font-family:"Noto Serif JP",serif;font-weight:700;font-size:clamp(24px,4.5vw,32px);
+  margin:.2em 0 .1em;line-height:1.4;text-wrap:balance;}
+.lead{color:var(--muted);margin:0 0 8px;}
+h2{font-family:"Noto Serif JP",serif;font-weight:600;font-size:19px;margin:0;}
+h3{font-size:15px;margin:18px 0 6px;color:var(--shu);}
+section{margin-top:40px;}
+.sechead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:16px;}
+.sechead .no{font-family:"Noto Serif JP",serif;color:var(--shu);font-weight:700;font-size:14px;letter-spacing:.1em;white-space:nowrap;}
+p{margin:.4em 0 .9em;}
+ul{margin:.3em 0 .9em;padding-left:1.3em;}
+li{margin:.3em 0;}
+small,.note{color:var(--muted);font-size:12.5px;}
+
+/* header card */
+.callcard{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--shu);
+  padding:20px 24px;margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 24px;}
+.callcard dt{font-size:11.5px;color:var(--muted);letter-spacing:.12em;margin-top:8px;}
+.callcard dd{margin:0;font-weight:700;font-size:16.5px;}
+.callcard dd .big{font-size:22px;font-family:"Noto Serif JP",serif;}
+.alert{background:var(--warn-bg);color:var(--warn-ink);border-left:4px solid var(--warn-ink);
+  padding:10px 16px;margin-top:14px;font-size:13.5px;line-height:1.7;}
+.alert b{font-size:14.5px;}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);background:var(--panel);}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px;}
+th{background:var(--panel2);text-align:left;font-weight:700;padding:8px 12px;
+  border-bottom:1px solid var(--line);white-space:nowrap;font-size:12.5px;letter-spacing:.04em;}
+td{padding:8px 12px;border-bottom:1px solid var(--hair);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;font-weight:700;white-space:nowrap;}
+.tag.ok{background:var(--ok-bg);color:var(--ok-ink);}
+.tag.warn{background:var(--warn-bg);color:var(--warn-ink);}
+
+/* Q&A */
+.qa{background:var(--panel);border:1px solid var(--line);padding:14px 18px;margin:10px 0;}
+.qa .q{font-weight:700;margin:0 0 4px;}
+.qa .q::before{content:"Q ";color:var(--shu);font-family:"Noto Serif JP",serif;font-weight:700;}
+.qa .a{margin:0;}
+.qa .a::before{content:"A ";color:var(--muted);font-family:"Noto Serif JP",serif;font-weight:700;}
+
+/* checklist */
+.check{list-style:none;padding:0;margin:0;counter-reset:c;}
+.check li{background:var(--panel);border:1px solid var(--line);margin:8px 0;padding:12px 16px 12px 14px;
+  display:flex;gap:12px;align-items:flex-start;}
+.check li.prio{border-left:4px solid var(--shu);}
+.check input[type=checkbox]{width:19px;height:19px;margin-top:5px;accent-color:var(--shu);flex:none;cursor:pointer;}
+.check label{cursor:pointer;flex:1;}
+.check .why{display:block;font-size:12.5px;color:var(--muted);line-height:1.6;}
+.check input:checked + label{opacity:.45;text-decoration:line-through;}
+.check input:focus-visible{outline:2px solid var(--shu);outline-offset:2px;}
+
+.kv{display:grid;grid-template-columns:10em 1fr;gap:3px 16px;font-size:13.5px;background:var(--panel);border:1px solid var(--line);padding:16px 20px;}
+.kv dt{color:var(--muted);}
+.kv dd{margin:0;}
+@media (max-width:520px){.kv{grid-template-columns:1fr;}.kv dt{margin-top:8px;}}
+footer{margin-top:56px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">KOMEYOSHI PACKAGE PROGRAM</div>
+  <h1>山元紙包装社 電話準備シート</h1>
+  <p class="lead">オリジナル米袋の問い合わせ(8/21送信・管理番号 22342-6523209)に対する先方からの確認電話。上から順に見ながら話せる構成です。</p>
+
+  <dl class="callcard">
+    <div><dt>日時</dt><dd><span class="big">本日 8/24(月) 16:30頃</span></dd></div>
+    <div><dt>相手</dt><dd>㈱山元紙包装社 東京営業所<br>野本 信隆(のもと のぶたか)さん</dd></div>
+    <div><dt>着信番号</dt><dd><span class="big">080-1445-3473</span><br><small>在宅勤務のため携帯から。この番号を登録推奨</small></dd></div>
+    <div><dt>メール</dt><dd style="font-weight:500">nomoto@yamagen-net.com</dd></div>
+  </dl>
+  <div class="alert"><b>時間は16:00ではなく16:30頃</b> — 8/21にこちらから「16:30〜」を提案し、今朝の野本さんの返信で「本日16:30頃にお電話します」と確定しています。先方は「いくつか確認したいことがある」ため、<b>質問を受ける側</b>の電話です。</div>
+</header>
+
+<section>
+  <div class="sechead"><span class="no">01</span><h2>こちらが送った問い合わせ内容(30秒でおさらい)</h2></div>
+  <div class="tw"><table>
+    <tr><th>袋</th><th>数量</th><th>仕様・備考</th></tr>
+    <tr><td><b>10kg クラフト</b></td><td class="num">約500枚</td><td>オリジナル印刷。メイン発注</td></tr>
+    <tr><td><b>5kg クラフト</b></td><td class="num">約400枚</td><td>10kgと<b>同一デザインの容量違い</b></td></tr>
+    <tr><td><b>30kg 業務用</b></td><td class="num">約100枚</td><td>既製品+自社シール貼付でも可</td></tr>
+    <tr><td><b>2kg 真空パック袋</b></td><td class="num">150〜300枚</td><td>「あればご案内ください」レベルの追加要望</td></tr>
+  </table></div>
+  <h3>伝えた仕様</h3>
+  <ul>
+    <li>未晒または晒クラフト・角底。<b>紐付き角底に関心</b>(宅配サイズ対策)/ <b>窓なし</b> / チャック不要(付きの可否は聞きたい)</li>
+    <li>印刷は<b>朱+墨の2色(生成り地)</b>基本。フルカラーの価格差も知りたい</li>
+    <li>デザインデータは自社制作済み・<b>AI/PDF入稿可</b>(フォントアウトライン化予定)。展開図テンプレート希望</li>
+    <li>食品表示欄の印刷可否+<b>精米年月日はスタンプ欄(可変)</b>の運用を質問済み</li>
+  </ul>
+  <h3>伝えた納期・予算</h3>
+  <ul>
+    <li>納期: <b>9月20日頃納品が理想</b>(初回発送10/3のため)。遅くとも10月初旬</li>
+    <li>予算: 10kg用 <b>100円前後</b>/5kg用 <b>80円前後</b>(税込・印刷込み目安)</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sechead"><span class="no">02</span><h2>聞かれそうなこと → 回答の用意</h2></div>
+
+  <div class="qa"><p class="q">デザインはどこまで決まっていますか?</p>
+  <p class="a">v2デザインで確定済み。<b>折り鶴マーク×欧文ワードマーク「KOME / YOSHI」×朱の角印「善」</b>。配色は生成り(クラフト地)×墨×朱の2色刷り想定。Illustratorデータあり、展開図テンプレートをもらえれば実寸に合わせて即入稿可能。</p></div>
+
+  <div class="qa"><p class="q">用途・販売方法は?</p>
+  <p class="a">EC直販(soa-komeyoshi.com・日英対応)が中心。10kg/5kgは家庭向け、30kgは飲食店など業務用。将来的に輸出も視野(GFP登録済み)。</p></div>
+
+  <div class="qa"><p class="q">数量は確定ですか? 増減は?</p>
+  <p class="a">初回はこの数量で確定でよい(10kg 500/5kg 400/30kg 100)。売れ行き次第で年間リピートあり。<b>300・500・1,000枚の単価差を見て最終決定したい</b>と返す。</p></div>
+
+  <div class="qa"><p class="q">納期はいつまでに必要ですか?</p>
+  <p class="a"><b>9/20頃納品が理想、10月初旬がリミット</b>。初回発送日が10/3で動かせない。貴社標準約2週間なら、いつまでに入稿・入金すれば間に合うか逆算日程を確認したい。</p></div>
+
+  <div class="qa"><p class="q">30kgはオリジナル印刷にしますか?</p>
+  <p class="a">既製の無地紐付きクラフト+自社シール(120×160mm・制作済み)で十分。既製品の型番と単価を案内してほしい。</p></div>
+
+  <div class="qa"><p class="q">食品表示(一括表示欄)はどうしますか?</p>
+  <p class="a">表示欄の枠は袋に印刷し、<b>産年・精米時期は可変(スタンプ/後入れ)</b>で版に含めない方針。文言はこちらで用意する(「単一原料米 埼玉県 彩のきずな」表示は根拠資料整備が前提のため、最終文言は入稿時に確定)。</p></div>
+
+  <div class="qa"><p class="q">支払条件について</p>
+  <p class="a">自動返信メールに「ご入金確認後の製造」とあり(三菱UFJ/PayPay銀行)。前入金は了解。ただし<b>納期が入金起算なら、見積→入金→納品の全体日程</b>をその場で確認する。</p></div>
+</section>
+
+<section>
+  <div class="sechead"><span class="no">03</span><h2>こちらから必ず確認すること</h2></div>
+  <ul class="check">
+    <li class="prio"><input type="checkbox" id="c1"><label for="c1"><b>納期の逆算日程</b> — 9/20頃納品には、いつまでに発注・入稿・入金が必要か<span class="why">最重要。今日8/24時点で標準納期約2週間。版起こし・色校正を挟むと余裕がないため、間に合う前提の日程を口頭で確定させる</span></label></li>
+    <li class="prio"><input type="checkbox" id="c2"><label for="c2"><b>数量別単価</b> — 300/500/1,000枚の単価と、最適な方式(セミオーダー1色 or フルオーダー)<span class="why">予算目安: 10kg 100円前後・5kg 80円前後(税込印刷込み)</span></label></li>
+    <li class="prio"><input type="checkbox" id="c3"><label for="c3"><b>版代・初期費用</b> — 色ごとの版代/<b>10kgと5kgが同一デザインなら版代はサイズごとに必要か</b><span class="why">2サイズ共通化でどこまで初期費用を圧縮できるかが総額を左右する</span></label></li>
+    <li><input type="checkbox" id="c4"><label for="c4"><b>標準寸法と展開図テンプレート</b> — 10kg用・5kg用の実寸、印刷可能範囲、塗り足し<span class="why">もらえ次第デザインを実寸化して入稿できる状態</span></label></li>
+    <li><input type="checkbox" id="c5"><label for="c5"><b>サンプル</b> — 白無地サンプルと色校正の可否・費用<span class="why">朱+墨がクラフト地でどう沈むかは色校正で確認したい</span></label></li>
+    <li><input type="checkbox" id="c6"><label for="c6"><b>2kg真空パック袋の取り扱い有無</b>(ポリ袋製品)<span class="why">山口包装工業には「取り扱いなし」と断られている。山元はポリ袋も製造品目にあるため要確認。なければマルタカの真空系(5kg実測117円〜)に切り替え</span></label></li>
+    <li><input type="checkbox" id="c7"><label for="c7"><b>チャック付き版の可否と価格差</b>(5kgのみ検討・国内向けは不要)</label></li>
+    <li><input type="checkbox" id="c8"><label for="c8"><b>フルカラー印刷の価格差</b>(2色との比較参考)</label></li>
+    <li><input type="checkbox" id="c9"><label for="c9"><b>分納・在庫預かりの可否</b><span class="why">置き場所と初回キャッシュフローの調整弁になる</span></label></li>
+    <li><input type="checkbox" id="c10"><label for="c10"><b>食品衛生法適合資料</b>(紙・インク)の提供可否<span class="why">輸出時にも必要になる。マルタカは「用意可能」と回答済み</span></label></li>
+    <li><input type="checkbox" id="c11"><label for="c11"><b>30kg既製品</b> — 無地紐付きクラフトの型番・単価・最小ロット</label></li>
+  </ul>
+</section>
+
+<section>
+  <div class="sechead"><span class="no">04</span><h2>交渉カード(相見積の状況)</h2></div>
+  <div class="tw"><table>
+    <tr><th>会社</th><th>状況</th><th>使いどころ</th></tr>
+    <tr><td><b>マルタカ</b><br><small>米袋最大手</small></td><td><span class="tag ok">見積受領済み</span> 5kg(KHP-830/840)。300枚はリバティパック=規格袋に後刷りシルク印刷・色は在庫インクから近似色。無償サンプル+カタログ発送手配中</td><td>「他社からは既に見積をもらっている」と言える唯一のカード。山元の強み(<b>シルク1色100枚〜の小ロット・完全オリジナル形状</b>)との違いを引き出す</td></tr>
+    <tr><td><b>アサヒパック</b></td><td><span class="tag warn">電話待ち</span> 先方から「電話で打ち合わせしたい」の返信のみ(オリジナル紐付きは1,000枚〜)</td><td>相見積2社目として名前を出せる</td></tr>
+    <tr><td><b>山口包装工業</b><br><small>KOMEBUKURO.com</small></td><td><span class="tag warn">2kg真空は取扱なし</span>(今朝回答あり)</td><td>2kg真空袋を山元が扱えるなら、その分をまとめて発注できると伝えられる</td></tr>
+  </table></div>
+  <p class="note">価格が予算を超える場合の返し方: 「マルタカの規格袋+後刷りだと単価を抑えられそうなので、貴社では数量を1,000枚にした場合/2色を1色にした場合の単価も教えてください」— 即決せず、書面見積を依頼して終える。</p>
+</section>
+
+<section>
+  <div class="sechead"><span class="no">05</span><h2>電話前に決めておく・注意点</h2></div>
+  <ul>
+    <li><b>窓の有無のズレに注意:</b> v2デザイン(8/14)では5kgは「クラフト窓付き(米粒が見える)」設計だったが、山元への問い合わせ(8/21)では<b>「窓なし」と送信済み</b>。マルタカには窓付きで見積依頼している。電話で聞かれたら「基本は窓なし、窓付きの価格差があれば参考までに」と答えるのが安全。</li>
+    <li><b>数量構成は8/21問い合わせが最新:</b> 計画書(8/14)の「定期は5kg×n袋」方針から、<b>10kg 500枚をメイン</b>とする構成に更新済み。10kg 500枚>5kg 400枚がいまの正。</li>
+    <li><b>即決しない:</b> この電話は仕様確認。金額と納期は<b>書面(メール)で見積をもらう</b>ところまでがゴール。「本日中に見積いただければ社内で即決できます」と急ぎの理由(10/3初回発送)を添えて締める。</li>
+    <li><b>納期が9/20に間に合わない場合のプランB:</b> 初回ロットだけマルタカの規格袋+後刷り(約1週間)や無地+シールでしのぎ、山元のオリジナルは2回目ロットから、という切り分けも可能。</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sechead"><span class="no">06</span><h2>基本情報(聞かれたら即答)</h2></div>
+  <dl class="kv">
+    <dt>社名・代表</dt><dd>株式会社SoA 代表取締役 齊藤 創一(さいとう そういち)</dd>
+    <dt>住所</dt><dd>〒350-0827 埼玉県川越市寺山648(サンプル送付先も同じ)</dd>
+    <dt>電話</dt><dd>090-1258-8530</dd>
+    <dt>ブランド</dt><dd>米善(こめよし)/ KOMEYOSHI — 埼玉県内限定品種「彩のきずな」+コシヒカリ、注文後精米のD2C</dd>
+    <dt>EC</dt><dd>soa-komeyoshi.com(日英)</dd>
+    <dt>初回発送日</dt><dd>2026年10月3日(袋の必着目標 9月20日頃)</dd>
+    <dt>問い合わせ管理番号</dt><dd>22342-6523209(YAMAGEN側の受付番号)</dd>
+  </dl>
+</section>
+
+<footer>出典: 山元紙包装社とのメール(8/21〜8/24)・YAMAGEN問い合わせ自動返信(8/21)・マルタカ見積メール(8/21)・山口包装工業回答(8/24)・米善 米袋開発計画書(8/14, v2改訂含む)。作成 2026-08-24。</footer>
+</div>
