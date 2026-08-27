@@ -1,0 +1,118 @@
+<title>米善 KHP-830 後刷り再構成案</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  body{margin:0;background:#CCC7BB;color:#26231E;font-family:"Noto Sans JP",sans-serif;font-size:14px;line-height:1.7;}
+  .wrap{max-width:1400px;margin:0 auto;padding:26px 24px 60px;}
+  h1{font-family:"Noto Serif JP",serif;font-size:20px;margin:0 0 4px;}
+  .sub{font-size:12px;color:#57534A;margin:0 0 14px;max-width:70em;}
+  .rowlabel{font-size:12.5px;font-weight:700;margin:26px 0 12px;padding-left:10px;border-left:4px solid #A93226;}
+  .row{display:flex;gap:34px;align-items:flex-end;flex-wrap:wrap;padding:6px 2px;}
+  .unit{text-align:center;}
+  .cap{font-size:11px;color:#57534A;margin-top:8px;}
+  .bag{position:relative;width:260px;height:520px;background:#C8A377;border:1px solid #A8865C;
+    box-shadow:0 3px 12px rgba(50,40,20,.25);overflow:hidden;text-align:left;}
+  .bag .topband{position:absolute;left:0;right:0;top:0;height:56px;background:#BE9A6E;border-bottom:1px solid #B08D60;}
+  .bag .tie{position:absolute;left:50%;top:18px;transform:translateX(-50%);width:120px;height:3px;background:#8F7048;border-radius:2px;}
+  .bag .window{position:absolute;left:94px;top:364px;width:72px;height:110px;background:#EFE7D4;border-radius:50%;
+    border:1px solid #B99A6E;background-image:radial-gradient(#E2D6BC 1.2px,transparent 1.3px);background-size:7px 7px;}
+  .guide{position:absolute;left:26px;top:221px;width:208px;height:182px;border:1px dashed rgba(170,40,30,.55);pointer-events:none;}
+  .guide span{position:absolute;top:-16px;left:0;font-size:9px;color:#8F2A20;letter-spacing:.05em;}
+  .abs{position:absolute;}
+  .vert{writing-mode:vertical-rl;}
+  .serif{font-family:"Noto Serif JP",serif;}
+  .note{background:#EFEADC;border:1px solid #CEC7B2;padding:12px 18px;margin-top:26px;font-size:12.5px;color:#57534A;max-width:74em;}
+  .note b{color:#26231E;}
+  .ink{color:#26231E}
+</style>
+
+<div class="wrap">
+  <h1>米善 米袋 — マルタカ後刷り(KHP-830)再構成案</h1>
+  <p class="sub">印刷可能範囲=下部160×140mm(赤破線)のみ・表2色(朱+墨)・濃淡はドットパターン・見当ズレ5mm対策で朱と墨は重ねない構成。窓(印刷不可)を避けて下段中央は空け。5kg原寸比。10kgは同レイアウトの拡大版。</p>
+
+  <div class="rowlabel">A 大字 — 160×140mm版(彩のきずな/コシヒカリ)</div>
+  <div class="row" id="rowA"></div>
+
+  <div class="rowlabel">C 鶴 — 160×140mm版(彩のきずな/コシヒカリ)</div>
+  <div class="row" id="rowC"></div>
+
+  <div class="note">
+    <b>元デザインから変えた点:</b> ①全面レイアウト→印刷範囲160×140mm内に全要素を再配置(範囲外の上部印章・縦帯は削除) ②C案の朱の濃淡市松→単色朱+ドットパターン(後刷りは100%濃度のみのため) ③朱と墨の重なり・隣接を排除(見当ズレ最大5mmへの対策) ④明朝の小さい文字は10pt以上に・細線0.5pt以上 ⑤品種名は墨版の文字差し替えで2種(コシヒカリ/彩のきずな各300枚)。窓付きはそのまま活かし、窓=中身の米が見える要素としてデザインに組み込み。
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="craneSil" d="
+      M 95,225 L 185,148 L 255,205 L 305,430
+      L 640,85 L 715,185 L 785,148 L 865,335 L 982,520
+      L 700,650 L 648,726 L 256,700 L 250,560
+      Q 210,390 190,240 Z"/>
+    <pattern id="shudot" width="26" height="26" patternUnits="userSpaceOnUse">
+      <rect width="26" height="26" fill="none"/>
+      <circle cx="7" cy="7" r="5" fill="#A93226"/>
+      <circle cx="20" cy="20" r="5" fill="#A93226"/>
+    </pattern>
+    <clipPath id="craneClip2"><use href="#craneSil"/></clipPath>
+    <symbol id="craneP" viewBox="60 40 950 700">
+      <use href="#craneSil" fill="#A93226"/>
+      <g clip-path="url(#craneClip2)">
+        <polygon points="305,430 640,85 715,185 785,148 865,335 982,520 700,650 648,726 350,548" fill="#C8A377"/>
+        <polygon points="305,430 640,85 715,185 785,148 865,335 982,520 700,650 648,726 350,548" fill="url(#shudot)"/>
+      </g>
+      <g clip-path="url(#craneClip2)" stroke="#C8A377" stroke-width="6" fill="none">
+        <path d="M 200,245 L 285,520"/>
+        <path d="M 250,560 L 350,548"/>
+        <path d="M 350,548 L 648,726"/>
+        <path d="M 340,540 L 640,85"/>
+        <path d="M 455,590 L 785,148"/>
+        <path d="M 704,650 L 865,340"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+(function(){
+  var INK="#26231E", SHU="#A93226", KRAFT="#C8A377";
+  var vars = [
+    {jp:"彩のきずな", en:"SAI NO KIZUNA"},
+    {jp:"コシヒカリ", en:"KOSHIHIKARI"}
+  ];
+  function shell(inner){
+    return '<div class="bag"><div class="topband"></div><div class="tie"></div>'
+      +'<div class="window"></div><div class="guide"><span>印刷可能範囲 160×140mm</span></div>'+inner+'</div>';
+  }
+  /* A 大字: 左=品種縦書き+善角印 / 右=大字「米」 / 下段=米善ロゴ(左)・5kg(右) */
+  function bagA(v){
+    var h='';
+    h+='<div class="abs vert serif" style="left:38px;top:228px;font-size:15px;letter-spacing:.16em;color:'+INK+';font-weight:600">'+v.jp+'</div>';
+    h+='<div class="abs" style="left:34px;top:342px;width:30px;height:30px;background:'+SHU+';border-radius:3px;display:flex;align-items:center;justify-content:center"><span class="serif" style="color:#EFE7D4;font-size:20px;font-weight:700;line-height:1">善</span></div>';
+    h+='<div class="abs serif" style="left:88px;top:224px;font-size:130px;font-weight:600;line-height:1;color:'+INK+'">米</div>';
+    h+='<div class="abs" style="left:34px;top:378px;line-height:1.25"><span class="serif" style="font-size:13px;font-weight:600;color:'+INK+'">米 善</span><br><span style="font-size:7px;letter-spacing:.3em;color:'+SHU+'">KOMEYOSHI</span></div>';
+    h+='<div class="abs serif" style="right:28px;top:372px;font-size:23px;color:'+INK+'">5<span style="font-size:12px"> kg</span></div>';
+    return shell(h);
+  }
+  /* C 鶴: 左=米善ロゴ+品種 / 右=朱単色+ドットの鶴 / 下段は窓を避ける */
+  function bagC(v){
+    var h='';
+    h+='<svg class="abs" style="left:126px;top:226px" width="106" height="78" viewBox="60 40 950 700" preserveAspectRatio="xMidYMid meet"><use href="#craneP" width="950" height="700" x="60" y="40"/></svg>';
+    h+='<div class="abs" style="left:34px;top:238px;line-height:1.4">'
+      +'<span class="serif" style="font-size:28px;font-weight:600;letter-spacing:.22em;color:'+INK+'">米 善</span>'
+      +'<div style="width:88px;border-top:2px solid '+SHU+';margin:4px 0 5px"></div>'
+      +'<span style="font-size:9px;letter-spacing:.4em;color:'+SHU+'">KOMEYOSHI</span></div>';
+    h+='<div class="abs" style="left:34px;top:318px;line-height:1.5">'
+      +'<span class="serif" style="font-size:14px;font-weight:600;letter-spacing:.12em;color:'+INK+'">'+v.jp+'</span><br>'
+      +'<span style="font-size:8px;letter-spacing:.2em;color:'+INK+';opacity:.75">'+v.en+'</span></div>';
+    h+='<div class="abs" style="left:34px;top:382px;font-size:8px;letter-spacing:.08em;color:'+INK+';opacity:.75">SoA Co., Ltd.&nbsp; soa-komeyoshi.com</div>';
+    h+='<div class="abs serif" style="right:28px;top:372px;font-size:23px;color:'+INK+'">5<span style="font-size:12px"> kg</span></div>';
+    return shell(h);
+  }
+  function render(id, fn, label){
+    document.getElementById(id).innerHTML = vars.map(function(v){
+      return '<div class="unit">'+fn(v)+'<div class="cap">KHP-830 紐付クラフト 窓付 5kg — '+v.jp+'</div></div>';
+    }).join("");
+  }
+  render("rowA", bagA);
+  render("rowC", bagC);
+})();
+</script>
