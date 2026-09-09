@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d12">
+<title>{% block title %}SoA EDM Studio{% endblock %}</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top"><div class="brand">SoA <span>EDM Studio</span></div><div class="small muted">{{ artist_name }}{% if not is_localhost %} · LAN{% endif %}</div></header>
+<main>
+{% if flash %}<div class="flash {{ flash.kind }}">{{ flash.message }}</div>{% endif %}
+{% block content %}{% endblock %}
+</main>
+<nav class="tabbar">
+<a href="/" class="{% if request.url.path == '/' %}active{% endif %}"><b>⌂</b>ホーム</a>
+<a href="/projects/new" class="{% if request.url.path == '/projects/new' %}active{% endif %}"><b>＋</b>新規</a>
+<a href="/jobs" class="{% if request.url.path.startswith('/jobs') %}active{% endif %}"><b>◔</b>進捗</a>
+<a href="/characters" class="{% if request.url.path.startswith('/characters') %}active{% endif %}"><b>◈</b>AERA</a>
+<a href="/analytics" class="{% if request.url.path.startswith('/analytics') %}active{% endif %}"><b>▤</b>分析</a>
+<a href="/settings" class="{% if request.url.path.startswith('/settings') %}active{% endif %}"><b>⚙</b>設定</a>
+</nav>
+<script src="/static/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}共有{% endblock %}
+{% block content %}
+<h1>{{ 'YouTube' if post.platform == 'youtube' else 'TikTok' }} に投稿 — {{ post.output_name }}</h1>
+<div id="share-root" data-video="/projects/{{ project.id }}/files/{{ post.output_name }}" data-filename="{{ post.output_name }}" data-title="{{ post.title }}">
+{% if output %}<video controls playsinline preload="metadata" src="/projects/{{ project.id }}/files/{{ post.output_name }}"></video>{% endif %}
+<div class="card"><h2>投稿文（自動コピーされます）</h2>
+<textarea id="caption-text" style="min-height:140px">{{ post.title }}
+
+{{ post.caption }}
+
+{{ post.hashtags }}</textarea>
+<button type="button" class="btn secondary" data-copy="caption-text">投稿文をコピー</button></div>
+<div id="share-status" class="flash info">操作: ①下のボタン → ②共有シートで {{ 'YouTube' if post.platform == 'youtube' else 'TikTok' }} を選択 → ③アプリで公開ボタン → ④ここに戻り「投稿済み」を記録</div>
+<p class="small muted" id="share-support">Web Share API の対応状況を確認中…</p>
+<button id="share-btn" class="btn block" type="button">① 投稿文をコピーして共有シートへ</button>
+<div id="share-fallback" class="card" hidden>
+  <h3>Web Share 非対応時の手順</h3>
+  <ol class="steps small"><li><a class="btn ghost" href="/projects/{{ project.id }}/files/{{ post.output_name }}" download>動画を保存</a>（iPhone: 共有 → 「ビデオを保存」）</li><li>上の「投稿文をコピー」</li><li>{{ 'YouTube' if post.platform == 'youtube' else 'TikTok' }} アプリを開き、保存した動画を選んで投稿文を貼り付け</li><li>AI生成コンテンツ申告を有効化して公開</li></ol>
+</div>
+<form id="mark-shared" method="post" action="/projects/{{ project.id }}/share/{{ post.id }}/mark" hidden><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="shared"></form>
+<form method="post" action="/projects/{{ project.id }}/share/{{ post.id }}/mark" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="status" value="posted">
+<h2>④ 投稿済みを記録</h2><label>公開URL（任意）</label><input type="text" name="url" placeholder="https://..."><button class="btn block">投稿済みとして記録（分析へ）</button></form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/share.js"></script>{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}3案比較{% endblock %}
+{% block content %}
+<h1>3案比較 — {{ project.title }}</h1>
+<p class="muted small">各案を聴き比べて1案を採用します。Eco/Standard では採用した1案だけを2〜3分化します。フル版の完了予定: {{ eta_full[0] ~ ' 分' if eta_full[0] else eta_full[1] }}</p>
+{% for c in cands %}
+<div class="card {% if c.is_selected %}hero{% endif %}">
+  <div class="row"><strong>案 {{ c.label }}：{% for l,f,ja in focus %}{% if l == c.label %}{{ ja }}{% endif %}{% endfor %}</strong>
+  <span class="pill {{ 'ok' if c.status in ['done','uploaded'] else ('err' if c.status=='failed' else ('acc' if c.status in ['running','queued'] else '')) }}">{{ c.status }}</span></div>
+  <div class="muted small">{{ c.target_duration_s }}秒 · seed {{ c.seed }} · BPM {{ c.bpm or '?' }} {{ c.key_scale }} · {{ '生成 %.0f 秒' % c.generation_seconds if c.generation_seconds else '' }} · 出所: {{ c.source or '—' }}</div>
+  {% if c.audio_path %}<audio controls preload="none" src="/projects/{{ project.id }}/audio/{{ c.id }}"></audio>{% endif %}
+  {% if c.full_audio_path %}<div class="small">フル版: <audio controls preload="none" src="/projects/{{ project.id }}/audio/{{ c.id }}?full=1"></audio></div>{% endif %}
+  {% if c.error %}<div class="flash error small">{{ c.error }}</div>{% endif %}
+  <details><summary>歌詞</summary><pre>{{ c.lyrics }}</pre></details>
+  {% if c.audio_path %}
+  <form method="post" action="/projects/{{ project.id }}/select/{{ c.id }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% if not c.full_audio_path %}
+    <label class="chk"><input type="checkbox" name="make_full" checked><span>採用後、この案を ACE-Step でフル生成する（秒数: <input type="number" name="full_seconds" value="150" min="120" max="180" style="width:90px;display:inline-block;padding:4px">）。ACE-Step が使えない場合はチェックを外し、フル版音源を手動アップロードしてください。</span></label>
+    {% endif %}
+    <button class="btn {% if c.is_selected %}secondary{% endif %}">{{ '採用済み（再採用）' if c.is_selected else 'この案を採用' }}</button></form>
+  {% else %}<p class="muted small">音源がまだありません。<a href="/projects/{{ project.id }}">プロジェクト画面</a>で生成または手動アップロードしてください。</p>{% endif %}
+</div>
+{% endfor %}
+<a class="btn ghost block" href="/projects/{{ project.id }}">← プロジェクトへ</a>
+{% endblock %}

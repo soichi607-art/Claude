@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}ショート編集{% endblock %}
+{% block content %}
+<h1>ショート編集 — {{ project.title }}</h1>
+<p class="muted small">単純な末尾カットではなく、尺ごとに冒頭・構成・字幕・結末を再編集します。<strong>収益化は保証されません</strong>（YouTube Shorts は 2024-10-15 以降3分まで、TikTok Creator Rewards は1分以上が対象 — 各公式規約は投稿時点で確認してください）。</p>
+{% if not audio %}<div class="flash error">採用済み音源がありません。</div>{% endif %}
+{% if jobs %}<div class="flash info">描画ジョブ実行中 — <a href="/jobs">進捗</a></div>{% endif %}
+<form method="post" action="/projects/{{ project.id }}/shorts/render" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn block" {% if not audio %}disabled{% endif %}>25秒 / 65秒 / 90秒（YouTube・TikTok）＋ フル版 9:16・16:9 を一括描画</button></form>
+{% for v,meta in versions.items() %}
+<div class="card"><h2>{{ meta.label }}</h2>
+<div class="table-wrap"><table><tr><th>役割</th><th>出力上の位置</th><th>元音源の位置</th></tr>
+{% for role,a,b in meta.blocks %}<tr><td>{{ role }}</td><td>{{ a }}–{{ b }}s</td><td>{% if plans[v] %}{{ plans[v][loop.index0].src_start }}–{{ plans[v][loop.index0].src_end }}s{% else %}—{% endif %}</td></tr>{% endfor %}</table></div>
+</div>
+{% endfor %}
+<div class="card"><h2>出力</h2><div class="grid">
+{% for name,version,platform in output_list %}<div>{% if name in outputs %}<video controls preload="metadata" src="/projects/{{ project.id }}/files/{{ name }}"></video><div class="small">{{ name }} · {{ '%.0f' % outputs[name].duration_s }}s</div>{% else %}<div class="card soft small">{{ name }}: 未生成</div>{% endif %}</div>{% endfor %}
+</div></div>
+{% endblock %}

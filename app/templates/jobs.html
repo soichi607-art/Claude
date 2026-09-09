@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}生成進捗{% endblock %}
+{% block content %}
+<h1>生成進捗</h1>
+<div class="row tight">
+<form method="post" action="/jobs/{{ 'resume' if paused else 'pause' }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn secondary">{{ 'キュー再開' if paused else 'キュー一時停止' }}</button></form>
+</div>
+<div id="jobs-live" data-poll="/jobs/partial" data-interval="4000">{% include "_jobs_partial.html" %}</div>
+{% endblock %}

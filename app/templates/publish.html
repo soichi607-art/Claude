@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}投稿準備{% endblock %}
+{% block content %}
+<h1>投稿準備 — {{ project.title }}</h1>
+<p class="muted small">完全自動投稿は行いません。代表者が承認し、iPhone の共有シートから YouTube / TikTok アプリで最終公開します（目標 2〜3 操作。1クリック投稿ではありません）。</p>
+<form method="post" action="/projects/{{ project.id }}/publish/package" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn secondary block">テキスト・カバー画像・post_package.zip を出力/更新</button>
+{% if missing %}<div class="small muted" style="margin-top:6px">未生成: {{ missing | join(', ') }}</div>{% endif %}
+</form>
+{% if 'cover_9x16.png' in outputs %}<div class="card"><h2>サムネイル</h2><div class="grid"><img src="/projects/{{ project.id }}/files/cover_1x1.png" alt="1:1"><img src="/projects/{{ project.id }}/files/cover_9x16.png" alt="9:16"><img src="/projects/{{ project.id }}/files/thumbnail_16x9.png" alt="16:9"></div></div>{% endif %}
+<form method="post" action="/projects/{{ project.id }}/publish/post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<h2>投稿を準備</h2>
+<label>プラットフォーム</label><select name="platform" id="platform"><option value="youtube">YouTube（Shorts / 通常）</option><option value="tiktok">TikTok</option></select>
+<label>動画</label><select name="output_name">{% for n in videos %}<option value="{{ n }}">{{ n }}</option>{% endfor %}</select>
+{% if not videos %}<div class="flash error small">動画が未生成です。先に <a href="/projects/{{ project.id }}/shorts">ショート編集</a> で描画してください。</div>{% endif %}
+<label>タイトル</label><input type="text" name="title" value="{{ copy.youtube_title }}">
+<label>投稿文（YouTube 説明 / TikTok キャプション）</label><textarea name="caption" style="min-height:160px">{{ copy.youtube_description }}</textarea>
+<label>ハッシュタグ</label><input type="text" name="hashtags" value="{{ copy.hashtags }}">
+<h3>公開前チェック（代表者）</h3>
+{% for key,text in [('chk_ai','AI生成コンテンツであることをプラットフォームの申告機能で申告する'),('chk_commercial','商用コンテンツ（宣伝・ブランド）の該当有無を確認し、該当すれば申告する'),('chk_no_imitation','実在人物の声・顔・既存曲・歌詞を模倣していない'),('chk_no_refnames','参考アーティスト名・曲名がタイトル/説明/タグに含まれていない'),('chk_ng','歌詞にNGワードが含まれていない'),('chk_no_logo','サムネイル・映像にロゴ・第三者の著作物が含まれていない'),('chk_no_guarantee','収益化は保証されないことを理解した'),('chk_rep','代表者として公開を承認する')] %}
+<label class="chk"><input type="checkbox" name="{{ key }}"><span>{{ text }}</span></label>{% endfor %}
+<button class="btn block" style="margin-top:10px" {% if not videos %}disabled{% endif %}>共有画面へ（YouTube / TikTok に投稿）</button>
+</form>
+{% if posts %}<div class="card"><h2>投稿記録</h2>{% for p in posts %}<div class="small"><span class="pill {{ 'ok' if p.status=='posted' else '' }}">{{ p.status }}</span> {{ p.platform }} · {{ p.output_name }} · {{ p.title[:40] }} · <a href="/projects/{{ project.id }}/share/{{ p.id }}">共有画面</a></div>{% endfor %}</div>{% endif %}
+<div class="card"><h2>出力ファイル</h2><div class="table-wrap"><table>{% for n,o in outputs.items() %}<tr><td><a href="/projects/{{ project.id }}/files/{{ n }}">{{ n }}</a></td><td class="muted">{{ o.kind }}</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

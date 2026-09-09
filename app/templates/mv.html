@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% block title %}MV編集{% endblock %}
+{% block content %}
+<h1>MV編集 — {{ project.title }}</h1>
+{% if not audio %}<div class="flash error">採用済み音源がありません。<a href="/projects/{{ project.id }}/compare">3案比較</a>で採用してください。</div>{% else %}
+<div class="card soft small">音源: {{ audio.name }} · {{ analysis.duration }} 秒 · {{ analysis.bpm }} BPM · {{ analysis.key }}<br>構成（自動検出）: {% for s in analysis.sections %}<span class="pill {{ 'acc' if s.high else '' }}">{{ s.name }} {{ s.start }}–{{ s.end }}s</span> {% endfor %}</div>
+{% endif %}
+{% if jobs %}<div class="flash info">描画ジョブ実行中 — <a href="/jobs">進捗</a></div>{% endif %}
+<div class="card"><h2>フルMV（9:16 / 16:9）</h2>
+<p class="muted small">AI動画が無くてもキャラクター画像と背景からモーショングラフィックス版を生成します。ビート同期フラッシュ・波形・スペクトラム・歌詞・パーティクル・グリッチ・ズーム/パン・色調統一・Intro/Build-up/Drop連動。エンコーダーは Intel QSV 優先、非対応なら libx264（設定画面で確認）。</p>
+<form method="post" action="/projects/{{ project.id }}/mv/render"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn block" {% if not audio %}disabled{% endif %}>フルMVを描画（バックグラウンド）</button></form>
+<div class="grid" style="margin-top:10px">{% for n in ['full_mv_9x16.mp4','full_mv_16x9.mp4'] %}<div>{% if n in outputs %}<video controls preload="metadata" src="/projects/{{ project.id }}/files/{{ n }}"></video><div class="small">{{ n }} · {{ outputs[n].width }}x{{ outputs[n].height }} · {{ '%.0f' % outputs[n].duration_s }}s · {{ outputs[n].encoder }}</div>{% else %}<div class="card soft small">{{ n }}: 未生成</div>{% endif %}</div>{% endfor %}</div></div>
+
+<div class="card"><h2>AI動画（無料GPU Notebook・手動実行）</h2>
+<p class="small">キャラクター: {{ character.name if character else '—' }} <span class="pill {{ 'ok' if character and character.approved else 'warn' }}">{{ '基準画像 確定済み' if character and character.approved else '基準画像 未確定 → パック出力不可' }}</span></p>
+<ol class="steps small">
+<li>下の「video_generation_pack.zip を出力」→ ダウンロード</li>
+<li>「Notebook をダウンロード」→ Google Colab / Kaggle に手動でアップロードして実行（GPU割当・無料提供は保証されません）</li>
+<li>使用時にモデル・サービスの最新ライセンス・商用利用条件を確認し、確認日と URL を記録（Notebook 内に記入欄）</li>
+<li>3〜5秒テスト → 6〜10シーン生成 → ai_clips.zip をダウンロード</li>
+<li>下の「AI動画ZIP取り込み」→ フルMV / ショートを再描画すると該当シーンが差し替わります</li>
+</ol>
+<div class="row tight">
+<form method="post" action="/projects/{{ project.id }}/mv/pack"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn secondary" {% if not (character and character.approved) %}disabled{% endif %}>video_generation_pack.zip を出力</button></form>
+{% if 'video_generation_pack.zip' in outputs %}<a class="btn ghost" href="/projects/{{ project.id }}/files/video_generation_pack.zip">パックをダウンロード</a>{% endif %}
+<a class="btn ghost" href="/projects/{{ project.id }}/mv/notebook">Notebook をダウンロード (.ipynb)</a>
+</div>
+<form method="post" action="/projects/{{ project.id }}/mv/import" enctype="multipart/form-data" style="margin-top:10px"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>AI動画ZIP取り込み（ファイル名にシーン名 hook/intro/verse/buildup/drop1/break/final_drop/outro を含める）</label><input type="file" name="zip" accept=".zip">
+<label class="chk"><input type="checkbox" name="license_ok"><span>生成に使ったモデルとサービスのライセンス・商用利用条件を確認しました（確認日と URL を Notebook の license_check.json に記録済み）</span></label>
+<button class="btn secondary">取り込む</button></form>
+<h3>シーン別プロンプト（[CHARACTER]/[ACTION]/[ENVIRONMENT]/[CAMERA]/[LIGHTING]/[MOOD]/[TECHNICAL]）</h3>
+{% for sc in scenes %}<details><summary>{{ scene_labels.get(sc.scene, sc.scene) }} <span class="pill {{ 'ok' if sc.source == 'ai' and sc.video_path else '' }}">{{ ('AI動画 %.1fs' % sc.duration_s) if (sc.source == 'ai' and sc.video_path) else 'モーショングラフィックス' }}</span></summary>
+<pre>{{ sc.prompt }}</pre><div class="small muted">seed {{ sc.seed }} · camera {{ sc.camera }}</div>
+{% if sc.source == 'ai' and sc.video_path %}<form method="post" action="/projects/{{ project.id }}/mv/scene/{{ sc.scene }}/clear" data-confirm="このシーンのAI動画を外しますか？"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="confirm" value="yes"><button class="btn ghost">AI動画を外す</button></form>{% endif %}</details>{% endfor %}
+</div>
+<div class="row tight"><a class="btn ghost" href="/projects/{{ project.id }}/shorts">ショート編集 →</a><a class="btn ghost" href="/projects/{{ project.id }}/publish">投稿準備 →</a></div>
+{% endblock %}
