@@ -1,6 +1,6 @@
 # ハードウェア診断レポート
 
-- 生成日時: 2026-09-09T15:56:16+00:00
+- 生成日時: 2026-09-09T16:34:53+00:00
 - 注意: このレポートは **このスクリプトを実行したマシン** の実測値です。別のPCで使う場合は `python scripts/diagnose.py` を再実行してください。
 
 ## OS
@@ -13,11 +13,11 @@
 - 論理コア: 4 / 物理コア: 4
 
 ## メモリ
-- 合計: 16.9 GB / 利用可能: 16.1 GB
+- 合計: 16.9 GB / 利用可能: 16.0 GB
 
 ## ストレージ
 - パス: /home/user/Claude/data/tmp
-- 合計: 270.6 GB / 空き: 31.2 GB
+- 合計: 270.6 GB / 空き: 30.7 GB
 
 ## GPU
 - 検出元: none
@@ -52,9 +52,9 @@
 - hevc_qsv: あり
 
 ## エンコーダー実動作テスト（1秒のテスト映像を実際にエンコード）
-- h264_qsv: 失敗 — [h264_qsv @ 0x5626adf505c0] Error creating a MFX session: -9.
-[vost#0:0/h264_qsv @ 0x5626adf501c0] Error while opening encoder - maybe incorrect parameters such
-- h264_vaapi: 失敗 — [AVHWDeviceContext @ 0x55aa4504bf40] No VA display found for device /dev/dri/renderD128.
+- h264_qsv: 失敗 — [h264_qsv @ 0x557d6c5dd5c0] Error creating a MFX session: -9.
+[vost#0:0/h264_qsv @ 0x557d6c5dd1c0] Error while opening encoder - maybe incorrect parameters such
+- h264_vaapi: 失敗 — [AVHWDeviceContext @ 0x55e31e8c7f40] No VA display found for device /dev/dri/renderD128.
 Device creation failed: -22.
 Failed to set value '/dev/dri/renderD128' 
 - libx264: 成功 — OK

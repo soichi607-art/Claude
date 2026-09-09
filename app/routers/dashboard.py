@@ -23,7 +23,7 @@ async def dashboard(request: Request):
         counts = {}
         for p in projects:
             counts[p.id] = {
-                "cands": len(s.exec(select(Candidate).where(Candidate.project_id == p.id, Candidate.status == "done")).all()),
+                "cands": len(s.exec(select(Candidate).where(Candidate.project_id == p.id, Candidate.status.in_(["done", "uploaded"]))).all()),
                 "outputs": len(s.exec(select(RenderOutput).where(RenderOutput.project_id == p.id, RenderOutput.kind == "video")).all()),
             }
     ace = ACEStepClient().health()

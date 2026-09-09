@@ -165,7 +165,8 @@ def validate_upload(filename: str, head: bytes, size: int, expected: str) -> str
 
 def redact(text: str) -> str:
     """Remove anything that looks like an API key before logging."""
-    text = re.sub(r"(?i)(api[_-]?key|token|authorization)[\"':=\s]+[A-Za-z0-9._\-]{8,}", r"\1=[REDACTED]", text)
+    text = re.sub(r"(?i)(api[_-]?key|token|authorization)[\"':=\s]+(bearer\s+)?[A-Za-z0-9._\-]{8,}", r"\1=[REDACTED]", text)
+    text = re.sub(r"(?i)bearer\s+[A-Za-z0-9._\-]{8,}", "Bearer [REDACTED]", text)
     if settings.acestep_api_key:
         text = text.replace(settings.acestep_api_key, "[REDACTED]")
     return text

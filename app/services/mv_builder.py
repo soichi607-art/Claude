@@ -311,8 +311,8 @@ def render(spec: RenderSpec, on_progress: Callable[[int, str], None] | None = No
     w, h, fps = spec.width, spec.height, spec.fps
     a1 = hexcolor(spec.accent)
     inputs = ["-f", "concat", "-safe", "0", "-i", str(concat_list), "-i", str(spec.audio_path)]
-    g: list[str] = []
-    cur = "[0:v]"
+    g: list[str] = ["[0:v]tpad=stop_mode=clone:stop_duration=2[vpad]"]
+    cur = "[vpad]"
     if spec.show_waveform:
         wh = int(h * 0.12)
         g.append(f"[1:a]aformat=channel_layouts=mono,showwaves=s={w}x{wh}:mode=cline:rate={fps}:colors=0x{a1}D9:scale=sqrt,format=rgba[wv]")
