@@ -6,6 +6,7 @@
 - Google Colab / Kaggle の無料 GPU 利用条件・禁止事項の最新版
 - Web Share API（ファイル共有）の iOS Safari 対応バージョンと Secure Context 要件（MDN / caniuse に到達不可）。実装は実行時に `navigator.canShare({files})` で判定し、非対応時はフォールバック
 - 実機（Core 5 120U）の GPU / XPU / Quick Sync の可否。診断は開発コンテナ上で実行されたため、実機で `python scripts/diagnose.py` を再実行すること
+- 利用者のもう 1 台（AMD Ryzen 5 220 / Radeon 740M / 15.3GB、2026-09-10 に実測）では FFmpeg 未導入のため h264_amf の実動作は未検証。h264_amf / h264_nvenc は候補に加えたが、エンコードオプションは汎用のもの（`-b:v 8M`）のみで、失敗時は libx264 に自動フォールバックする
 - ACE-Step の CPU / XPU での実処理時間（10秒・30秒テストの実測で判断）
 
 ## 実装していないこと（意図的）

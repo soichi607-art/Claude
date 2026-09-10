@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any
 
 UNKNOWN = "未確認"
+# 実動作テストの対象と採用順（Intel QSV → NVIDIA NVENC → AMD AMF → macOS VideoToolbox → Linux VAAPI）。libx264 は常に最後の保険
+HW_ENCODERS: tuple[str, ...] = ("h264_qsv", "h264_nvenc", "h264_amf", "h264_videotoolbox", "h264_vaapi")
 
 
 def _run(cmd: list[str], timeout: int = 20) -> tuple[int, str]:
@@ -60,7 +62,10 @@ def detect_cpu() -> dict[str, Any]:
         except OSError:
             pass
     elif platform.system() == "Windows":
-        name = platform.processor() or UNKNOWN
+        # platform.processor() は "AMD64 Family 25 Model 117" のような型番しか返さないので、CIM から製品名を取る
+        code, out = _run(["powershell", "-NoProfile", "-Command", "(Get-CimInstance Win32_Processor).Name"], timeout=40)
+        first = (out.strip().splitlines() or [""])[0].strip() if code == 0 else ""
+        name = first or platform.processor() or UNKNOWN
     elif platform.system() == "Darwin":
         code, out = _run(["sysctl", "-n", "machdep.cpu.brand_string"])
         name = out.strip() or UNKNOWN
@@ -225,6 +230,7 @@ def detect_ffmpeg() -> dict[str, Any]:
         "ffprobe_path": fp or "",
         "encoders": {},
         "qsv": UNKNOWN,
+        "hw": UNKNOWN,
     }
     if ff:
         code, out = _run([ff, "-hide_banner", "-encoders"], timeout=30)
@@ -234,6 +240,8 @@ def detect_ffmpeg() -> dict[str, Any]:
             found[name] = bool(re.search(rf"^\s*[VA][\.A-Z]{{5}}\s+{re.escape(name)}\s", out, re.M))
         info["encoders"] = found
         info["qsv"] = "エンコーダー有り (h264_qsv)。実動作は要テスト" if found.get("h264_qsv") else "h264_qsv 未検出"
+        hw_present = [n for n in HW_ENCODERS if found.get(n)]
+        info["hw"] = ("ffmpeg に含まれる HW エンコーダー: " + ", ".join(hw_present) + "（実動作は下のテスト結果で判定）") if hw_present else "HW エンコーダーなし（libx264 のみ）"
     return info
 
 
@@ -322,7 +330,7 @@ def full_diagnostics(acestep_dir: str | None = None, api_url: str | None = None,
     ff = detect_ffmpeg()
     enc_tests = []
     if run_encoder_tests and ff["ffmpeg"] != "未検出":
-        for enc in ("h264_qsv", "h264_vaapi", "h264_videotoolbox", "libx264"):
+        for enc in (*HW_ENCODERS, "libx264"):
             if ff["encoders"].get(enc):
                 enc_tests.append(test_encoder(enc, workdir))
     return {
@@ -345,9 +353,9 @@ def full_diagnostics(acestep_dir: str | None = None, api_url: str | None = None,
 
 
 def usable_video_encoder(diag: dict[str, Any]) -> str:
-    """Pick the encoder to use: Intel QSV first, then other HW, then libx264."""
+    """Pick the encoder to use: the first HW encoder (Intel QSV → NVIDIA NVENC → AMD AMF → VideoToolbox → VAAPI) that passed the real test, then libx264."""
     ok = {t["encoder"] for t in diag.get("encoder_tests", []) if t.get("ok")}
-    for enc in ("h264_qsv", "h264_videotoolbox", "h264_vaapi", "libx264"):
+    for enc in (*HW_ENCODERS, "libx264"):
         if enc in ok:
             return enc
     return "libx264" if diag.get("ffmpeg", {}).get("encoders", {}).get("libx264") else "未確認"
@@ -410,6 +418,9 @@ def render_markdown(diag: dict[str, Any]) -> str:
         "## Intel Quick Sync Video",
         f"- {ff['qsv']}",
         "",
+        "## ハードウェアエンコーダー（Intel QSV / NVIDIA NVENC / AMD AMF など）",
+        f"- {ff.get('hw', UNKNOWN)}",
+        "",
         "## 動画エンコーダー（ffmpeg -encoders）",
     ]
     for name, present in ff.get("encoders", {}).items():
@@ -445,6 +456,9 @@ def render_markdown(diag: dict[str, Any]) -> str:
         verdicts.append("- Intel XPU 未検出: ACE-Step は CPU 実行のみ（非常に遅い、公式INSTALL.md「CPU-Only Mode」参照）")
     else:
         verdicts.append("- Intel XPU: 未確認（ACE-Step の venv で `python scripts/diagnose.py` を再実行）")
+    gpu_names = " / ".join(str(d) for d in g["gpu"]["devices"] if d and d != UNKNOWN)
+    if xpu["xpu_available"] is not True and gpu_names and "intel" not in gpu_names.lower():
+        verdicts.append(f"- GPU は Intel 以外（{gpu_names}）: torch.xpu（Intel XPU）の対象外。ACE-Step の対応デバイスは公式に CUDA / MPS / ROCm / Intel XPU / CPU（PLAN.md、2026-09-09 確認）。このアプリ側は CPU 実行または手動アップロードで全工程を完成できる")
     verdicts.append(f"- 動画エンコード: {usable_video_encoder(g)} を使用")
     lines += verdicts or ["- 判定なし"]
     return "\n".join(lines) + "\n"

@@ -1,6 +1,21 @@
-# テストレポート（2026-09-10 更新）
+# テストレポート（2026-09-10 更新・2 回目）
 
-実行環境: 開発コンテナ（Linux 6.18, Intel Xeon 4 vCPU, 16GB, Python 3.11.15, FFmpeg 6.1.1, GPU なし）。実機（Core 5 120U）では未実行。
+## 最新: 利用者の AMD 実機（2026-09-10）
+実行環境: Windows 11 (10.0.26200), AMD Ryzen 5 220 w/ Radeon 740M, 16.4GB, Python 3.12.14（uv 管理、`start_windows.bat` が作成した `.venv`）, **FFmpeg 無し**。
+
+結果: **30 passed, 7 failed（全 37 件）**。失敗 7 件はすべて FFmpeg / ffprobe 不在が原因（FFmpeg 導入後に再実行すること）:
+- test_audio_and_video: test_stitch_audio_duration, test_render_mv_small, test_encoder_fallback_to_libx264（ffmpeg 実行）
+- test_web_flow: test_project_flow（音源アップロードが ffprobe 失敗で 400）, test_render_outputs_and_package, test_ai_clip_import_and_swap（描画）, test_run_preflight_reports_ok（前提チェックが「ffmpeg が見つかりません」を返す＝正しい挙動）
+
+今回追加したテスト（FFmpeg 不要、AMD 機で成功）:
+- test_hardware_and_generation::test_hw_encoder_priority_and_args — h264_amf / h264_nvenc の候補化、採用順、`encoder_args`、未知名は libx264
+- test_hardware_and_generation::test_dotenv_inline_comments_are_not_values — `.env` の行内コメント・引用符・`export` の扱い
+- test_diagnostics_report に「## ハードウェアエンコーダー」の見出し確認を追加
+
+補足: 修正前は同じ環境で 17 件失敗していた。差分 10 件は `.env` の行内コメント混入（LAN モード誤判定 → 全画面 503）によるもので、パーサー修正で回復。
+
+## 前回: 開発コンテナ（2026-09-10）
+実行環境: 開発コンテナ（Linux 6.18, Intel Xeon 4 vCPU, 16GB, Python 3.11.15, FFmpeg 6.1.1, GPU なし）。Intel 実機（Core 5 120U）では未実行。
 
 ## 実行コマンド
 ```
@@ -26,4 +41,4 @@ python -m pytest -v
 - フレーム抽出でタイトル・歌詞テロップ（英語）・日本語テロップ・波形・グリッチ・ビートフラッシュを目視確認
 
 ## 未テスト
-- 実 ACE-Step（XPU/CPU）での生成時間、Colab/Kaggle での Notebook 実行、iOS Safari 実機での Web Share、Intel QSV 実機エンコード、1080p フル解像度での描画時間
+- 実 ACE-Step（XPU/CPU）での生成時間、Colab/Kaggle での Notebook 実行、iOS Safari 実機での Web Share、Intel QSV / AMD AMF / NVIDIA NVENC の実機エンコード、1080p フル解像度での描画時間、FFmpeg 導入後の AMD 機での全件テスト

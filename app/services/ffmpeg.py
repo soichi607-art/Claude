@@ -146,6 +146,10 @@ def escape_filter_path(path: str | os.PathLike) -> str:
     return p
 
 
+# 実動作テストに合格した HW エンコーダーを、この順で採用する（libx264 は常に最後の保険）
+HW_ENCODER_PRIORITY: tuple[str, ...] = ("h264_qsv", "h264_nvenc", "h264_amf", "h264_videotoolbox", "h264_vaapi")
+
+
 def encoder_args(encoder: str, quality: str = "standard") -> list[str]:
     """Return codec args for the chosen H.264 encoder."""
     if encoder == "h264_qsv":
@@ -154,15 +158,19 @@ def encoder_args(encoder: str, quality: str = "standard") -> list[str]:
         return ["-c:v", "h264_videotoolbox", "-b:v", "8M", "-pix_fmt", "yuv420p"]
     if encoder == "h264_vaapi":
         return ["-c:v", "h264_vaapi", "-qp", "23"]
+    if encoder == "h264_nvenc":  # NVIDIA。オプションは汎用のもののみ（実機未検証、失敗時は libx264 へ自動フォールバック）
+        return ["-c:v", "h264_nvenc", "-b:v", "8M", "-pix_fmt", "yuv420p"]
+    if encoder == "h264_amf":  # AMD (Radeon)。同上
+        return ["-c:v", "h264_amf", "-b:v", "8M", "-pix_fmt", "yuv420p"]
     return ["-c:v", "libx264", "-preset", "veryfast" if quality == "standard" else "medium", "-crf", "21", "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.1"]
 
 
 def pick_encoder(diag_tests: list[dict] | None = None) -> str:
-    """Prefer Intel QSV, then other verified HW encoders, else libx264."""
+    """Prefer a hardware encoder that passed the 1-second real test (Intel QSV → NVIDIA NVENC → AMD AMF → VideoToolbox → VAAPI), else libx264."""
     if settings.video_encoder != "auto":
         return settings.video_encoder
     ok = {t["encoder"] for t in (diag_tests or []) if t.get("ok")}
-    for enc in ("h264_qsv", "h264_videotoolbox", "h264_vaapi"):
+    for enc in HW_ENCODER_PRIORITY:
         if enc in ok:
             return enc
     return "libx264"

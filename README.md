@@ -11,7 +11,7 @@
 Python 3.11〜3.14（ACE-Step 側は公式要件により 3.11/3.12） · FastAPI · Jinja2 · SQLite (SQLModel) · FFmpeg/ffprobe · librosa · Pillow · pytest · PWA。詳細は `docs/ARCHITECTURE.md`、判断記録は `docs/ADR.md`。
 
 ## いちばん簡単な起動
-- Windows: `start_windows.bat` をダブルクリック（初回は仮想環境と依存を自動インストール、ブラウザが開きます。FFmpeg が無ければ winget での導入を提案、または zip を `tools` フォルダへ）
+- Windows: `start_windows.bat` をダブルクリック（初回は仮想環境と依存を自動インストール、ブラウザが開きます。Python が無ければ winget での導入を提案（uv が入っていれば uv の Python を自動利用）、FFmpeg が無ければ winget での導入を提案、または zip を `tools` フォルダへ）
 - macOS / Linux: `./start.sh`
 - 操作手順はアプリ内「ガイド」タブ、または `docs/USER_GUIDE_JA.md`
 

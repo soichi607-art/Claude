@@ -7,8 +7,25 @@ def test_diagnostics_report():
     md = hardware.render_markdown(d)
     for key in ("## OS", "## CPU", "## メモリ", "## GPU", "## Intel XPU", "## Intel Quick Sync Video", "## ACE-Step 1.5", "## 判定"):
         assert key in md
-    assert hardware.usable_video_encoder(d) in ("libx264", "未確認", "h264_qsv", "h264_vaapi", "h264_videotoolbox")
+    assert hardware.usable_video_encoder(d) in ("libx264", "未確認", *hardware.HW_ENCODERS)
     assert hardware.usable_video_encoder({"encoder_tests": [{"encoder": "h264_qsv", "ok": True}], "ffmpeg": {"encoders": {}}}) == "h264_qsv"
+    assert "## ハードウェアエンコーダー" in md
+
+
+def test_hw_encoder_priority_and_args():
+    """AMD (h264_amf) / NVIDIA (h264_nvenc) are real candidates; the priority is fixed and libx264 is the last resort."""
+    from app.services import ffmpeg as ff
+
+    assert hardware.HW_ENCODERS == ff.HW_ENCODER_PRIORITY == ("h264_qsv", "h264_nvenc", "h264_amf", "h264_videotoolbox", "h264_vaapi")
+    only_amf = [{"encoder": "h264_amf", "ok": True}, {"encoder": "libx264", "ok": True}, {"encoder": "h264_qsv", "ok": False}]
+    assert hardware.usable_video_encoder({"encoder_tests": only_amf, "ffmpeg": {"encoders": {"libx264": True}}}) == "h264_amf"
+    assert ff.pick_encoder(only_amf) == "h264_amf"
+    assert ff.pick_encoder([{"encoder": "h264_nvenc", "ok": True}, {"encoder": "h264_amf", "ok": True}]) == "h264_nvenc"
+    assert ff.pick_encoder([]) == "libx264"
+    for enc in (*hardware.HW_ENCODERS, "libx264"):
+        args = ff.encoder_args(enc)
+        assert args[:2] == ["-c:v", enc]
+    assert ff.encoder_args("unknown_encoder")[1] == "libx264"
 
 
 def test_safety_check_runs():
@@ -65,3 +82,30 @@ def test_eta_and_queue(client, csrf):
     finally:
         _cleanup_benchmarks()
     assert gen.tests_passed() == {"test10": False, "test30": False}
+
+
+def test_dotenv_inline_comments_are_not_values(tmp_path):
+    """`.env.example` is copied to `.env` by the start scripts; its trailing comments must not leak into values."""
+    import os
+
+    from app.config import _load_dotenv, parse_env_value
+
+    assert parse_env_value("127.0.0.1          # LAN公開は 0.0.0.0") == "127.0.0.1"
+    assert parse_env_value("                # 例 C:/ACE-Step-1.5") == ""
+    assert parse_env_value("auto      # auto | h264_qsv") == "auto"
+    assert parse_env_value('"quoted # not a comment"') == "quoted # not a comment"
+    assert parse_env_value("'single'") == "single"
+    assert parse_env_value("plain#hash") == "plain#hash"  # no whitespace before # → part of the value
+    assert parse_env_value("") == ""
+    env = tmp_path / ".env"
+    env.write_text("# header\nSOA_TEST_ENV_A=127.0.0.1   # comment\nSOA_TEST_ENV_B=            # 空\nexport SOA_TEST_ENV_C=\"x y\"\n", encoding="utf-8")
+    for k in ("SOA_TEST_ENV_A", "SOA_TEST_ENV_B", "SOA_TEST_ENV_C"):
+        os.environ.pop(k, None)
+    try:
+        _load_dotenv(env)
+        assert os.environ["SOA_TEST_ENV_A"] == "127.0.0.1"
+        assert os.environ["SOA_TEST_ENV_B"] == ""
+        assert os.environ["SOA_TEST_ENV_C"] == "x y"
+    finally:
+        for k in ("SOA_TEST_ENV_A", "SOA_TEST_ENV_B", "SOA_TEST_ENV_C"):
+            os.environ.pop(k, None)

@@ -3,7 +3,7 @@
 set -e
 cd "$(dirname "$0")"
 PY=${PYTHON:-python3}
-if ! command -v "$PY" >/dev/null 2>&1; then echo "[ERROR] python3 が見つかりません（3.11 / 3.12 を入れてください）"; exit 1; fi
+if ! command -v "$PY" >/dev/null 2>&1; then echo "[ERROR] python3 が見つかりません（3.11〜3.14 を入れてください）"; exit 1; fi
 if [ ! -x .venv/bin/python ]; then echo "[1/4] 仮想環境を作成..."; "$PY" -m venv .venv; fi
 # shellcheck disable=SC1091
 source .venv/bin/activate

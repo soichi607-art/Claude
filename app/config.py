@@ -8,6 +8,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def parse_env_value(raw: str) -> str:
+    """Return the value part of a .env line without quotes or an inline comment.
+
+    ``.env.example`` documents each key with a trailing ``# comment``; the comment must
+    never become part of the value (otherwise SOA_HOST becomes "127.0.0.1   # ..." and the
+    app wrongly switches to LAN mode).
+    """
+    v = raw.strip()
+    if not v or v.startswith("#"):
+        return ""
+    if v[0] in ("'", '"'):
+        end = v.find(v[0], 1)
+        return v[1:end] if end > 0 else v[1:]
+    for i, ch in enumerate(v):
+        if ch == "#" and (i == 0 or v[i - 1] in " \t"):
+            return v[:i].strip()
+    return v
+
+
 def _load_dotenv(path: Path) -> None:
     if not path.exists():
         return
@@ -16,7 +35,10 @@ def _load_dotenv(path: Path) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         k, v = line.split("=", 1)
-        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+        k = k.strip()
+        if k.lower().startswith("export "):
+            k = k[7:].strip()
+        os.environ.setdefault(k, parse_env_value(v))
 
 
 _load_dotenv(ROOT / ".env")

@@ -20,7 +20,7 @@
 ## Phase 別
 | Phase | 状態 | 備考 |
 |---|---|---|
-| 1 環境診断 | ✅ | `docs/HARDWARE_REPORT.md` は実機で起動スクリプトが生成（git 管理外）。GPU/XPU/QSV は実機で確認 |
+| 1 環境診断 | ✅ | `docs/HARDWARE_REPORT.md` は実機で起動スクリプトが生成（git 管理外）。AMD 機（Ryzen 5 220）で生成確認済み。Intel 機の GPU/XPU/QSV と AMD 機の h264_amf 実動作は未確認 |
 | 2 PLAN.md | ✅ | 出典・確認日付き |
 | 3 Web UI と DB | ✅ | CSRF・CSP・Basic 認証（LAN）・アップロード検証・パス検証 |
 | 4 プロジェクト管理 | ✅ | 中立化＋監査ログ、NG ワード、参考音源解析（権限確認必須） |
@@ -38,11 +38,13 @@
 | 16 テスト・ドキュメント | ✅ | アプリ内「ガイド」タブ、ダッシュボード「次にやること」、docs/USER_GUIDE_JA.md |
 | 17 操作性の仕上げ（2026-09-10） | ✅ | ワンクリック起動スクリプト、前提チェック、HW エンコーダー失敗時の libx264 自動フォールバック、新規 venv からの再現インストール検証 |
 | 18 環境の緩和（2026-09-10） | ✅ | Python 3.11〜3.14 対応（PyPI の Windows ビルド有無を確認）、FFmpeg の自動検出（PATH / tools フォルダ / winget / ダウンロード フォルダ）、start_windows.bat の winget 自動導入提案 |
+| 19 実機検証と互換性（2026-09-10） | ✅ | 利用者の Windows 実機（AMD Ryzen 5 220 / Radeon 740M / 16GB、Python 未導入・uv あり・FFmpeg 無し）で `start_windows.bat` を実走。修正: (1) Store の案内だけの python を除外し、`python3.12` 系の名前と uv 管理の Python も探索、Python 未検出時は winget `Python.Python.3.12` の導入を提案 (2) bat に `chcp 65001` と `.gitattributes`（CRLF 固定）— LF の UTF-8 バッチだと cmd が日本語行末で改行を飲み込み構文エラーになる (3) `.env` の行内コメントが値に混入し LAN モード誤判定→全画面 503 になる不具合を修正 (4) AMD `h264_amf` / NVIDIA `h264_nvenc` をエンコーダー候補に追加（実動作テスト合格時のみ採用、失敗時は libx264） (5) 診断で CPU 製品名を取得し、GPU が Intel 以外なら判定に明記 |
 
 ## 未実装（意図的）
 - 自動投稿、公式 API による成績取得、実機での画像/動画生成モデル常駐（docs/KNOWN_LIMITATIONS.md）
 
 ## 実機で最初に行うこと
-1. `python scripts/diagnose.py` で docs/HARDWARE_REPORT.md を更新（Intel XPU / QSV の可否を確認）
+0. `start_windows.bat` をダブルクリック（Python / FFmpeg が無ければ winget での導入を提案。2026-09-10 に AMD 機で venv 作成〜FFmpeg 案内まで実走確認済み。FFmpeg 導入後の起動は未確認）
+1. `python scripts/diagnose.py` で docs/HARDWARE_REPORT.md を更新（Intel 機は XPU / QSV、AMD 機は h264_amf の実動作を確認）
 2. docs/ACESTEP_SETUP.md に従い ACE-Step API を起動し、設定画面で 10 秒→30 秒テスト
 3. モデル重み・Notebook サービスのライセンスを確認して記録欄を埋める

@@ -20,14 +20,10 @@ from app.services.hardware import full_diagnostics, render_markdown  # noqa: E40
 
 
 def _load_env() -> None:
-    env = ROOT / ".env"
-    if env.exists():
-        for line in env.read_text(encoding="utf-8", errors="replace").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, v = line.split("=", 1)
-            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+    """Same parser as the app (strips quotes and inline comments) so the report matches what the app sees."""
+    from app.config import _load_dotenv
+
+    _load_dotenv(ROOT / ".env")
 
 
 def main() -> int:

@@ -1,7 +1,7 @@
 # クイックスタート（日本語）
 
 ## 0. 最短（推奨）
-Python（3.11〜3.14）を入れた上で、Windows は `start_windows.bat` をダブルクリック。FFmpeg が無ければスクリプトが winget での自動インストールを提案します（または zip を `tools` フォルダへ）。、macOS/Linux は `./start.sh`。初回セットアップと起動を自動で行い、ブラウザが開きます。画面の使い方は `docs/USER_GUIDE_JA.md` とアプリ内「ガイド」タブ。
+Windows は `start_windows.bat` をダブルクリック。Python（3.11〜3.14）が無ければスクリプトが winget での自動インストールを提案し（uv が入っていれば uv の Python を自動利用）、FFmpeg が無ければ同様に winget での自動インストールを提案します（または zip を `tools` フォルダへ）。macOS/Linux は Python を入れた上で `./start.sh`。初回セットアップと起動を自動で行い、ブラウザが開きます。画面の使い方は `docs/USER_GUIDE_JA.md` とアプリ内「ガイド」タブ。
 
 ## 1. 準備（PC・手動の場合）
 1. Python 3.11〜3.14、FFmpeg（PATH、または zip を `tools` フォルダに展開、または winget `Gyan.FFmpeg`）、Git をインストール

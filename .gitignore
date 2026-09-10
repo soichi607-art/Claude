@@ -1,7 +1,8 @@
 # SoA EDM Studio
 .env
 data/
-docs/HARDWARE_REPORT.md   # 実機で start スクリプト / scripts/diagnose.py が生成する
+# 実機で start スクリプト / scripts/diagnose.py が生成する（.gitignore は行内コメント不可なので別行に書く）
+docs/HARDWARE_REPORT.md
 __pycache__/
 *.pyc
 .pytest_cache/
