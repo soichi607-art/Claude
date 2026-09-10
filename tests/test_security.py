@@ -38,3 +38,20 @@ def test_validate_upload_checks_magic_and_ext():
 def test_redact_hides_keys():
     out = security.redact("Authorization: Bearer abcdefghijklmnop1234")
     assert "abcdefghijklmnop1234" not in out
+
+
+def test_ffmpeg_found_in_tools_folder_without_bin(tmp_path, monkeypatch):
+    """A portable FFmpeg dropped anywhere under tools/ is found even when PATH has none."""
+    from app.services import ffmpeg as ff
+
+    fake_root = tmp_path / "ffmpeg-8.0-essentials_build" / "somewhere" / "deep"
+    fake_root.mkdir(parents=True)
+    (fake_root / "ffmpeg").write_text("#!/bin/sh\n")
+    monkeypatch.setattr(ff.settings, "ffmpeg_bin", "definitely-not-on-path-ffmpeg")
+    monkeypatch.setattr(ff.shutil, "which", lambda *_a, **_k: None)  # simulate: nothing on PATH
+    monkeypatch.setattr(ff, "_candidate_roots", lambda: [])
+    ff._FOUND.clear()
+    assert ff.find_binary("ffmpeg", extra_roots=[tmp_path]) == str(fake_root / "ffmpeg")
+    ff._FOUND.clear()
+    assert ff.find_binary("ffmpeg") is None
+    ff._FOUND.clear()

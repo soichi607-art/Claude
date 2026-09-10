@@ -35,7 +35,9 @@ async def dashboard(request: Request):
         any_video = bool(s.exec(select(RenderOutput).where(RenderOutput.kind == "video")).first())
     ace = ACEStepClient().health()
     tests = tests_passed()
-    ffmpeg_ok = bool(shutil.which(settings.ffmpeg_bin)) and bool(shutil.which(settings.ffprobe_bin))
+    from ..services.ffmpeg import available as ffmpeg_available
+
+    ffmpeg_ok = ffmpeg_available()
     diag_done = (settings.data_dir / "hardware_report.json").exists()
     checklist = [
         {"label": "FFmpeg / ffprobe が使える", "ok": ffmpeg_ok, "href": "/help", "hint": "無いと動画が作れません（ガイド参照）"},

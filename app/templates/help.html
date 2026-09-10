@@ -17,7 +17,8 @@
 <div class="card"><h2>初回セットアップ（PC）</h2>
 <ol class="steps small">
 <li>Windows: <code>start_windows.bat</code> をダブルクリック。macOS/Linux: <code>./start.sh</code>。初回は仮想環境の作成と依存インストール（数分）を自動で行い、ブラウザが開きます。</li>
-<li>FFmpeg が無いと止まります。<a href="https://ffmpeg.org/download.html" target="_blank" rel="noopener">ffmpeg.org</a> から入手して PATH に追加してください。</li>
+<li>Python は 3.11〜3.14 で動作します（最新版で可）。ACE-Step を使う場合だけ、ACE-Step 側の環境に 3.11 または 3.12 が必要です（公式要件）。</li>
+<li>FFmpeg が無いと止まります。用意する方法は 3 つ: (A) Windows のコマンドプロンプトで <code>winget install -e --id Gyan.FFmpeg</code> → 新しいウィンドウで再実行 / (B) <a href="https://ffmpeg.org/download.html" target="_blank" rel="noopener">ffmpeg.org</a> からダウンロードした zip を解凍し、フォルダごとアプリの <code>tools</code> フォルダに入れる（<strong>bin フォルダを探す必要はありません</strong>。中の ffmpeg.exe を自動検出します） / (C) <code>.env</code> の <code>SOA_FFMPEG</code> / <code>SOA_FFPROBE</code> にフルパスを書く。</li>
 <li>「設定」→「診断を実行」で GPU / Intel XPU / Quick Sync の可否を確認（このレポートは実行した PC の実測値です）。</li>
 <li>ACE-Step を使う場合は「設定」の手順（docs/ACESTEP_SETUP.md）で API サーバーを起動し、「10秒テスト」→「30秒テスト」を実行。両方成功すると3案生成が有効になります。</li>
 </ol></div>

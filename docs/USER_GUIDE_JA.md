@@ -18,7 +18,13 @@
 
 起動すると `http://127.0.0.1:8000` がブラウザで開きます。開かない場合は手でこの URL を入力してください。
 
-初回に必要なもの: Python 3.11 か 3.12、FFmpeg（`ffmpeg` と `ffprobe`）。FFmpeg が無いと起動スクリプトが止まり、入手先（https://ffmpeg.org/download.html）を表示します。
+初回に必要なもの:
+- **Python 3.11〜3.14**（python.org の最新版で構いません）。ACE-Step を使う場合だけ、ACE-Step 側の環境に 3.11 または 3.12 が必要です（ACE-Step 公式要件）。
+- **FFmpeg**（`ffmpeg` と `ffprobe`）。用意する方法は 3 つ。どれでも可。
+  - **A. winget（Windows・いちばん簡単）**: コマンドプロンプトで `winget install -e --id Gyan.FFmpeg` を実行 → 新しいウィンドウで起動スクリプトを再実行。`start_windows.bat` が FFmpeg を見つけられないときは、この自動インストールを実行するか聞いてきます（Y で実行）。
+  - **B. zip を tools フォルダに入れる**: https://ffmpeg.org/download.html → Windows のアイコン → 配布サイト（gyan.dev または BtbN）の zip をダウンロード → 解凍 → 解凍してできたフォルダを **まるごと** このアプリの `tools` フォルダに入れる。**bin フォルダを探す必要はありません**。アプリが中の `ffmpeg.exe` / `ffprobe.exe` を自動で見つけます。
+  - **C. フルパス指定**: `.env` の `SOA_FFMPEG` と `SOA_FFPROBE` に `ffmpeg.exe` / `ffprobe.exe` の場所を書く。
+  - ※ ffmpeg.org で「Download Source Code」を選ぶとソースコード（プログラムの元）だけで実行ファイルは入っていません。Windows は上の A か B を使ってください。
 
 ---
 

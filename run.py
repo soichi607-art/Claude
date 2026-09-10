@@ -18,11 +18,20 @@ from app.config import settings
 def preflight() -> list[str]:
     """Return a list of problems (empty = OK). Never guesses; only reports what it can see."""
     problems: list[str] = []
-    if sys.version_info < (3, 11) or sys.version_info >= (3, 13):
-        problems.append(f"Python 3.11 または 3.12 が必要です（現在 {sys.version.split()[0]}）")
-    for binary in (settings.ffmpeg_bin, settings.ffprobe_bin):
-        if not shutil.which(binary):
-            problems.append(f"{binary} が見つかりません。https://ffmpeg.org/download.html から入手し、PATH に追加してください")
+    if sys.version_info < (3, 11):
+        problems.append(f"Python 3.11 以上が必要です（現在 {sys.version.split()[0]}）")
+    elif sys.version_info >= (3, 15):
+        problems.append(f"[注意] Python {sys.version.split()[0]} は未検証です（3.11〜3.14 で確認）。依存パッケージが入れば動作します")
+    from app.services.ffmpeg import find_binary
+
+    for binary in ("ffmpeg", "ffprobe"):
+        if not find_binary(binary):
+            problems.append(
+                f"{binary} が見つかりません。次のどれかで用意してください: "
+                "(a) Windows: コマンドプロンプトで  winget install -e --id Gyan.FFmpeg  → 新しいウィンドウで再実行 / "
+                "(b) ダウンロードした FFmpeg の zip を解凍し、そのフォルダごと このアプリの tools フォルダに入れる（bin を探す必要はありません） / "
+                "(c) .env の SOA_FFMPEG と SOA_FFPROBE に ffmpeg.exe / ffprobe.exe のフルパスを書く"
+            )
     for mod in ("fastapi", "uvicorn", "sqlmodel", "jinja2", "multipart", "itsdangerous", "httpx", "PIL", "numpy", "librosa", "soundfile", "psutil"):
         try:
             __import__(mod)
@@ -44,7 +53,7 @@ def main() -> int:
         print("=== 前提チェック: 問題あり ===")
         for p in problems:
             print(" - " + p)
-        if args.check or any("Python パッケージ" in p or "ffmpeg" in p or "ffprobe" in p for p in problems):
+        if args.check or any("Python パッケージ" in p or "が見つかりません" in p or "以上が必要" in p for p in problems):
             return 1
     else:
         print("=== 前提チェック: OK ===")

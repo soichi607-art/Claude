@@ -198,12 +198,31 @@ def detect_python() -> dict[str, str]:
     return {"version": sys.version.split()[0], "executable": sys.executable}
 
 
+def _find(name: str) -> str | None:
+    try:
+        from .ffmpeg import find_binary
+
+        return find_binary(name)
+    except Exception:  # pragma: no cover
+        return shutil.which(name)
+
+
 def detect_ffmpeg() -> dict[str, Any]:
-    ff = shutil.which("ffmpeg")
-    fp = shutil.which("ffprobe")
+    ff = _find("ffmpeg")
+    fp = _find("ffprobe")
+
+    def _ver(path: str | None) -> str:
+        if not path:
+            return "未検出"
+        code, out = _run([path, "-version"])
+        first = out.strip().splitlines()[0] if out.strip() else ""
+        return (first or "検出") + f"  [{path}]"
+
     info: dict[str, Any] = {
-        "ffmpeg": _version_of("ffmpeg", ["-version"]) if ff else "未検出",
-        "ffprobe": _version_of("ffprobe", ["-version"]) if fp else "未検出",
+        "ffmpeg": _ver(ff),
+        "ffprobe": _ver(fp),
+        "ffmpeg_path": ff or "",
+        "ffprobe_path": fp or "",
         "encoders": {},
         "qsv": UNKNOWN,
     }
@@ -220,7 +239,7 @@ def detect_ffmpeg() -> dict[str, Any]:
 
 def test_encoder(encoder: str, workdir: str | os.PathLike | None = None) -> dict[str, Any]:
     """Actually try to encode 1 second of test video with the given encoder."""
-    ff = shutil.which("ffmpeg")
+    ff = _find("ffmpeg")
     if not ff:
         return {"encoder": encoder, "ok": False, "detail": "ffmpeg未検出"}
     out_dir = Path(workdir or ".")

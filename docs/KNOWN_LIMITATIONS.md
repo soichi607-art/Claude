@@ -15,6 +15,11 @@
 - 声のクローン、顔の模倣、メロディー・歌詞の流用、「〇〇そっくり」生成
 - HTMX 本体の同梱（外部 CDN に到達不可だったため、同等機能の最小 JS を自前実装。docs/ADR.md ADR-005）
 
+## 環境について
+- 本アプリの依存パッケージ（numba / numpy / scipy / pillow など）は Python 3.12・3.13・3.14 向けの Windows ビルドが PyPI にあることを 2026-09-10 に確認（`pip download --only-binary`）。3.15 以降は未確認。
+- ACE-Step 1.5 は公式に Python 3.11〜3.12 を要求するため、ACE-Step は別の仮想環境（`setup_xpu.bat` / `uv sync`）で動かす。
+- FFmpeg の winget パッケージ `Gyan.FFmpeg` は Microsoft の winget-pkgs 公式リポジトリに登録があることを確認（2026-09-10、github.com/microsoft/winget-pkgs）。配布元 gyan.dev のページ本文は本セッションから到達不可のため、zip 内のフォルダ構成は未確認 → アプリは構成に依存せず ffmpeg.exe を再帰検索する。
+
 ## 品質上の制約
 - 歌詞はフレーズバンクによるルールベース生成。文学的品質は限定的。編集可能。
 - 歌詞テロップのタイミングはセクション均等割で、ボーカルに厳密同期していない。

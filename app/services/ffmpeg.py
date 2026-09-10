@@ -23,16 +23,71 @@ class FFmpegError(RuntimeError):
     pass
 
 
+_FOUND: dict[str, str | None] = {}
+
+
+def _candidate_roots() -> list[Path]:
+    """Places to look for a portable FFmpeg when it is not on PATH (no bin folder needed)."""
+    from ..config import ROOT
+
+    roots: list[Path] = [ROOT / "tools", ROOT / "ffmpeg", ROOT]
+    home = Path.home()
+    roots += [home / "Downloads", home / "ダウンロード", home / "Desktop", home / "デスクトップ", home / "ffmpeg"]
+    for env in ("LOCALAPPDATA", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"):
+        v = os.environ.get(env)
+        if v:
+            roots += [Path(v) / "Microsoft" / "WinGet" / "Packages", Path(v) / "ffmpeg", Path(v)]
+    roots += [Path("C:/ffmpeg"), Path("/opt/homebrew/bin"), Path("/usr/local/bin"), Path("/opt/ffmpeg")]
+    seen: list[Path] = []
+    for r in roots:
+        if r.exists() and r not in seen:
+            seen.append(r)
+    return seen
+
+
+def find_binary(name: str, extra_roots: list[Path] | None = None, max_depth: int = 4) -> str | None:
+    """Locate ffmpeg/ffprobe: explicit setting → PATH → recursive search of common folders."""
+    key = name + "|" + "|".join(map(str, extra_roots or []))
+    if key in _FOUND and _FOUND[key] and Path(_FOUND[key]).exists():  # type: ignore[arg-type]
+        return _FOUND[key]
+    configured = settings.ffmpeg_bin if name == "ffmpeg" else settings.ffprobe_bin
+    if configured and configured not in (name, name + ".exe") and Path(configured).exists():
+        _FOUND[key] = str(Path(configured))
+        return _FOUND[key]
+    hit = shutil.which(configured) or shutil.which(name)
+    if hit:
+        _FOUND[key] = hit
+        return hit
+    exe_names = {name, name + ".exe"}
+    for root in (extra_roots or []) + _candidate_roots():
+        try:
+            base_depth = len(root.parts)
+            for dirpath, dirnames, filenames in os.walk(root):
+                depth = len(Path(dirpath).parts) - base_depth
+                if depth >= max_depth:
+                    dirnames[:] = []
+                dirnames[:] = [d for d in dirnames if not d.startswith((".", "__")) and d not in ("node_modules", "site-packages", "venv", ".venv")]
+                for f in filenames:
+                    if f in exe_names:
+                        found = str(Path(dirpath) / f)
+                        _FOUND[key] = found
+                        return found
+        except (OSError, PermissionError):
+            continue
+    _FOUND[key] = None
+    return None
+
+
 def ffmpeg_bin() -> str:
-    return shutil.which(settings.ffmpeg_bin) or settings.ffmpeg_bin
+    return find_binary("ffmpeg") or settings.ffmpeg_bin
 
 
 def ffprobe_bin() -> str:
-    return shutil.which(settings.ffprobe_bin) or settings.ffprobe_bin
+    return find_binary("ffprobe") or settings.ffprobe_bin
 
 
 def available() -> bool:
-    return bool(shutil.which(settings.ffmpeg_bin)) and bool(shutil.which(settings.ffprobe_bin))
+    return bool(find_binary("ffmpeg")) and bool(find_binary("ffprobe"))
 
 
 def run(args: Sequence[str], timeout: int = 1800, cwd: str | os.PathLike | None = None) -> subprocess.CompletedProcess:

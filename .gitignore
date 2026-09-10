@@ -12,3 +12,6 @@ venv/
 venv_xpu/
 node_modules/
 tmp/
+!tools/README.txt
+tools/*
+!tools/README.txt

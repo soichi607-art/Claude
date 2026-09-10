@@ -1,10 +1,10 @@
 # クイックスタート（日本語）
 
 ## 0. 最短（推奨）
-Python 3.11/3.12 と FFmpeg を入れた上で、Windows は `start_windows.bat` をダブルクリック、macOS/Linux は `./start.sh`。初回セットアップと起動を自動で行い、ブラウザが開きます。画面の使い方は `docs/USER_GUIDE_JA.md` とアプリ内「ガイド」タブ。
+Python（3.11〜3.14）を入れた上で、Windows は `start_windows.bat` をダブルクリック。FFmpeg が無ければスクリプトが winget での自動インストールを提案します（または zip を `tools` フォルダへ）。、macOS/Linux は `./start.sh`。初回セットアップと起動を自動で行い、ブラウザが開きます。画面の使い方は `docs/USER_GUIDE_JA.md` とアプリ内「ガイド」タブ。
 
 ## 1. 準備（PC・手動の場合）
-1. Python 3.11 または 3.12、FFmpeg（ffmpeg / ffprobe が PATH にあること）、Git をインストール
+1. Python 3.11〜3.14、FFmpeg（PATH、または zip を `tools` フォルダに展開、または winget `Gyan.FFmpeg`）、Git をインストール
 2. このリポジトリを取得し、依存をインストール
    ```bash
    python -m venv .venv
