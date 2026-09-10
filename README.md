@@ -32,6 +32,9 @@ iPhone からの利用と制作の流れは `docs/QUICK_START_JA.md`、ACE-Step 
 ## 出力（プロジェクトごと）
 youtube_short_25s/65s/90s.mp4, tiktok_hook_25s / reward_65s / story_90s.mp4, full_mv_9x16.mp4, full_mv_16x9.mp4, cover_1x1.png, cover_9x16.png, thumbnail_16x9.png, lyrics_en.txt, lyrics_ja.txt, youtube_title.txt, youtube_description.txt, tiktok_caption.txt, hashtags.txt, disclosure_checklist.txt, video_generation_pack.zip, post_package.zip
 
+## 引継ぎ
+作業を引き継ぐときは `HANDOVER.md` を最初に読んでください（状態・ファイル地図・未確認事項・次の作業）。
+
 ## 状態
 完成・未完成・制約は `STATUS.md`、テスト結果は `docs/TEST_REPORT.md`、未確認事項は `docs/KNOWN_LIMITATIONS.md` を参照。収益化は保証しません。
 
