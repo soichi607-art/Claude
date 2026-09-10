@@ -1,0 +1,25 @@
+<div class="card soft small">
+  <span class="pill {{ 'ok' if safety.ok else 'err' }}">PC保護: {{ '正常' if safety.ok else '停止条件' }}</span>
+  空きメモリ {{ safety.free_mem_gb if safety.free_mem_gb is not none else '未確認' }} GB · 空き容量 {{ safety.free_disk_gb if safety.free_disk_gb is not none else '未確認' }} GB ·
+  バッテリー {{ '駆動中' if safety.on_battery else ('AC' if safety.on_battery is not none else '未確認') }} · 温度 {{ (safety.temp_c ~ '°C') if safety.temp_c is not none else '取得不可' }}
+  {% if safety.reasons %}<div class="muted">{{ safety.reasons | join(' / ') }}</div>{% endif %}
+  {% if paused %}<div class="pill warn">キュー一時停止中</div>{% endif %}
+</div>
+{% for j in jobs %}
+<div class="card">
+  <div class="row"><strong>#{{ j.id }} {{ kind_ja.get(j.kind, j.kind) }}</strong><span class="pill {{ 'ok' if j.status=='done' else ('err' if j.status=='failed' else ('acc' if j.status=='running' else '')) }}">{{ status_ja.get(j.status, j.status) }}</span></div>
+  <div class="muted small">{% if j.project_id %}プロジェクト: {{ titles.get(j.project_id, j.project_id) }} · {% endif %}{{ j.note }}</div>
+  {% if j.status == 'running' %}
+    <div class="progress"><i style="width:{{ j.progress }}%"></i></div>
+    <div class="small muted">経過 {{ '%.0f' % (j.elapsed_s or 0) }} 秒{% if j.eta_s %} / 完了予定 約 {{ '%.0f' % j.eta_s }} 秒（実測から算出）{% else %} / 完了予定: 未計測{% endif %}</div>
+    <form method="post" action="/jobs/{{ j.id }}/cancel"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn ghost">キャンセル</button></form>
+  {% elif j.status == 'queued' %}
+    <form method="post" action="/jobs/{{ j.id }}/cancel"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn ghost">取り消し</button></form>
+  {% elif j.status in ['failed','cancelled'] %}
+    {% if j.error %}<div class="flash error small">{{ j.error[:400] }}</div>{% endif %}
+    <form method="post" action="/jobs/{{ j.id }}/retry"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn ghost">再実行</button></form>
+  {% elif j.status == 'done' %}<div class="small muted">所要 {{ '%.0f' % (j.elapsed_s or 0) }} 秒</div>{% endif %}
+</div>
+{% else %}<p class="muted">ジョブはありません。</p>{% endfor %}
+{% if bench %}<div class="card"><h3>実測ベンチマーク</h3><div class="table-wrap"><table><tr><th>種別</th><th>音声秒</th><th>所要秒</th><th>倍率</th><th>結果</th><th>日時</th></tr>
+{% for b in bench %}<tr><td>{{ b.kind }}</td><td>{{ b.duration_s }}</td><td>{{ '%.1f' % b.elapsed_s if b.elapsed_s else '' }}</td><td>{{ '%.2fx' % (b.elapsed_s / b.duration_s) if (b.elapsed_s and b.duration_s) else '' }}</td><td>{{ '成功' if b.success else '失敗' }}</td><td>{{ b.created_at.strftime('%m/%d %H:%M') }}</td></tr>{% endfor %}</table></div></div>{% endif %}

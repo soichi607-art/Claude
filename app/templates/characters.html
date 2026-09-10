@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% block title %}キャラクター管理{% endblock %}
+{% block content %}
+<h1>固定AIアーティスト</h1>
+{% for c in chars %}
+<div class="card {% if c.approved %}hero{% endif %}">
+  <div class="row"><strong style="color:{{ c.theme_color }}">{{ c.name }}</strong><span class="pill {{ 'ok' if c.approved else 'warn' }}">{{ '基準画像 確定済み（' ~ c.approved_by ~ '）' if c.approved else '基準画像 未確定' }}</span></div>
+  <p class="muted small">代表者が基準画像を確定するまで、AI動画生成パック（video_generation_pack.zip）は出力されません。MVのモーショングラフィックス版は未確定でも作成できます（画像は「基準画像未確定」プレースホルダー）。</p>
+  <div class="grid">
+  {% for k,label in kinds %}{% set im = (images[c.id] | selectattr('kind','equalto',k) | list | first) %}
+    <div><div class="small muted">{{ label }}</div>{% if im %}<img src="/characters/{{ c.id }}/image/{{ k }}" alt="{{ label }}">{% else %}<div class="card soft small" style="text-align:center">未登録</div>{% endif %}</div>
+  {% endfor %}
+  </div>
+  <form method="post" action="/characters/{{ c.id }}/image" enctype="multipart/form-data" class="card soft"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h3>画像を登録（無料GPU Notebook 等で生成した完全オリジナル画像）</h3>
+    <label>種別</label><select name="kind">{% for k,label in kinds %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+    <label>ファイル（PNG/JPG/WebP、透過は PNG）</label><input type="file" name="image" accept=".png,.jpg,.jpeg,.webp">
+    <label>メモ（使用モデル・seed など）</label><input type="text" name="note">
+    <label class="chk"><input type="checkbox" name="original"><span>実在人物に似ていない完全オリジナルの画像であり、ロゴ・政治宗教シンボル・過度な露出を含みません</span></label>
+    <button class="btn secondary">登録</button></form>
+  {% if not c.approved %}
+  <form method="post" action="/characters/{{ c.id }}/approve" class="card soft"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h3>代表者による基準画像の確定</h3><label>代表者名</label><input type="text" name="approver">
+    <label class="chk"><input type="checkbox" name="confirm"><span>この基準画像を {{ c.name }} の公式な基準として確定します</span></label>
+    <button class="btn">確定する</button></form>
+  {% else %}<form method="post" action="/characters/{{ c.id }}/unapprove" data-confirm="承認を取り消しますか？"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn ghost">承認を取り消す</button></form>{% endif %}
+  <details><summary>設定・プロンプトを編集</summary>
+  <form method="post" action="/characters/{{ c.id }}/update"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="row"><div><label>名前（仮称 AERA。変更可）</label><input type="text" name="name" value="{{ c.name }}"></div><div><label>テーマカラー</label><input type="color" name="theme_color" value="{{ c.theme_color }}"></div><div><label>seed</label><input type="number" name="seed" value="{{ c.seed or '' }}"></div></div>
+    <label>プロフィール</label><textarea name="profile">{{ c.profile }}</textarea>
+    <label>キャラクター生成プロンプト</label><textarea name="prompt" style="min-height:140px">{{ c.prompt }}</textarea>
+    <label>ネガティブプロンプト</label><textarea name="negative_prompt">{{ c.negative_prompt }}</textarea>
+    <label>キャラクターシート用プロンプト</label><textarea name="sheet_prompt">{{ c.sheet_prompt }}</textarea>
+    {% if c.approved %}<label class="chk"><input type="checkbox" name="keep_approval"><span>承認を維持する（顔・髪などの同一性に関わる変更なら外してください）</span></label>{% endif %}
+    <button class="btn secondary">保存</button></form></details>
+</div>
+{% endfor %}
+{% endblock %}

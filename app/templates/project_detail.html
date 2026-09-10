@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<h1>{{ project.title }} <span class="pill">{{ project.status }}</span></h1>
+<div class="row tight"><a class="btn ghost" href="/projects/{{ project.id }}/compare">3案比較</a><a class="btn ghost" href="/projects/{{ project.id }}/mv">MV編集</a><a class="btn ghost" href="/projects/{{ project.id }}/shorts">ショート</a><a class="btn ghost" href="/projects/{{ project.id }}/publish">投稿準備</a></div>
+
+<div class="card"><h2>この曲の独自設定（自動割当）</h2>
+<dl class="kv"><dt>コンセプト</dt><dd>{{ story.concept_ja }} / {{ story.concept_en }}</dd><dt>背景</dt><dd>{{ story.environment }}</dd><dt>色</dt><dd>{{ story.palette }} (アクセント {{ story.accent_hex }})</dd><dt>カメラ</dt><dd>{{ story.camera_arc }}</dd><dt>衣装バリエーション</dt><dd>{{ story.wardrobe }}</dd><dt>導入/結末</dt><dd>{{ story.intro_style }} → {{ story.ending_style }}</dd><dt>歌詞演出</dt><dd>{{ story.lyric_style }}</dd></dl>
+<p class="muted small">顔・髪・主要特徴は固定。背景・衣装・色・カメラ・導入・結末は曲ごとに変わります。</p></div>
+
+<div class="card"><h2>楽曲生成</h2>
+<p class="small">テスト状況: 10秒 <span class="pill {{ 'ok' if tests.test10 else 'warn' }}">{{ '成功' if tests.test10 else '未' }}</span> 30秒 <span class="pill {{ 'ok' if tests.test30 else 'warn' }}">{{ '成功' if tests.test30 else '未' }}</span>
+{% if not (tests.test10 and tests.test30) %}<br><span class="muted">両方成功するまで3案生成は無効です（<a href="/settings">設定</a>で実行）。ACE-Stepが使えない場合は下の手動アップロードで進められます。</span>{% endif %}</p>
+<p class="small muted">完了予定（実測ベース）: 30秒 → {{ eta[30][0] ~ '分' if eta[30][0] else eta[30][1] }} / 60秒 → {{ eta[60][0] ~ '分' if eta[60][0] else '未計測' }} / 150秒 → {{ eta[150][0] ~ '分' if eta[150][0] else '未計測' }}</p>
+<form method="post" action="/projects/{{ project.id }}/generate"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>モード</label><select name="mode">{% for k,v in modes.items() %}<option value="{{ k }}" {% if project.mode == k %}selected{% endif %}>{{ k }}（各案 {{ v }} 秒）</option>{% endfor %}</select>
+<label class="chk"><input type="checkbox" name="thinking"><span>ACE-Step の 5Hz LM（thinking=true）を使う。LMが読み込まれた環境のみ。CPU/低メモリでは非推奨。</span></label>
+<button class="btn block" {% if not (tests.test10 and tests.test30) %}disabled{% endif %}>3案（A/B/C）の生成を開始</button></form></div>
+
+<div class="card"><h2>3案のプロンプト・歌詞</h2>
+{% for c in cands %}
+<details><summary>案 {{ c.label }}：{% for l,f,ja in focus %}{% if l == c.label %}{{ ja }}{% endif %}{% endfor %} <span class="pill {{ 'ok' if c.status in ['done','uploaded'] else ('err' if c.status=='failed' else '') }}">{{ c.status }}</span></summary>
+{% if c.error %}<div class="flash error small">{{ c.error }}</div>{% endif %}
+<form method="post" action="/projects/{{ project.id }}/candidates/{{ c.id }}/edit"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>キャプション（ACE-Step へ送る中立化済みプロンプト）</label><textarea name="prompt">{{ c.prompt }}</textarea>
+<label>歌詞（英語・{{ c.target_duration_s }}秒用）</label><textarea name="lyrics" style="min-height:140px">{{ c.lyrics }}</textarea>
+<div class="row"><div><label>BPM</label><input type="number" name="bpm" value="{{ c.bpm or '' }}"></div><div><label>キー（例 A Minor）</label><input type="text" name="key_scale" value="{{ c.key_scale }}"></div><div><label>seed</label><input type="text" value="{{ c.seed }}" disabled></div></div>
+<button class="btn secondary">案 {{ c.label }} を保存</button></form>
+<form method="post" action="/projects/{{ project.id }}/candidates/{{ c.id }}/upload" enctype="multipart/form-data" style="margin-top:8px"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>手動アップロード（ACE-Step が使えない場合／別途生成した音源）</label><input type="file" name="audio" accept=".wav,.mp3,.flac,.m4a,.ogg">
+<label class="chk"><input type="checkbox" name="original"><span>自作または権利確認済みのオリジナル音源です（既存曲・他者の声の模倣ではありません）</span></label>
+<button class="btn ghost">この案の音源として登録</button></form>
+</details>
+{% endfor %}
+</div>
+
+<div class="card"><h2>フル版歌詞（英語 / 日本語対訳）</h2>
+<form method="post" action="/projects/{{ project.id }}/lyrics"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="row"><div><label>lyrics_en</label><textarea name="lyrics_en" style="min-height:200px">{{ project.lyrics_en }}</textarea></div><div><label>lyrics_ja</label><textarea name="lyrics_ja" style="min-height:200px">{{ project.lyrics_ja }}</textarea></div></div>
+<button class="btn secondary">歌詞を保存</button></form></div>
+
+<div class="card"><h2>参考音源（解析権限のあるものだけ）</h2>
+{% for r in refs %}<div class="card soft small">{{ r.filename }} · 解析: {{ r.loads(r.analysis_json).bpm }} BPM / {{ r.loads(r.analysis_json).key }} / {{ r.loads(r.analysis_json).timbre | join(', ') }}
+<form method="post" action="/projects/{{ project.id }}/reference/{{ r.id }}/delete" data-confirm="この参考音源を削除しますか？"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="confirm" value="yes"><button class="btn ghost small">削除</button></form></div>{% endfor %}
+<form method="post" action="/projects/{{ project.id }}/reference" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<input type="file" name="audio" accept=".wav,.mp3,.flac,.m4a,.ogg">
+<label class="chk"><input type="checkbox" name="rights"><span>この音源を解析する権限を持っています（自作、または解析許可を得たもの）。URLからのダウンロードは行いません。</span></label>
+<button class="btn secondary">アップロードして解析（外部送信なし）</button></form>
+<p class="muted small">中立化プロンプト: {{ project.neutral_prompt or '（参考音源なし）' }}</p></div>
+
+<div class="card"><h2>入力の編集</h2><form method="post" action="/projects/{{ project.id }}/inputs"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% include "_inputs_form.html" %}<button class="btn secondary block" style="margin-top:12px">保存（未生成の案のプロンプトを更新）</button></form></div>
+
+<div class="card"><h2>監査ログ</h2>{% for a in audits %}<div class="small muted">{{ a.created_at.strftime('%m/%d %H:%M') }} {{ a.kind }}: {{ a.after[:120] }}</div>{% endfor %}</div>
+<form method="post" action="/projects/{{ project.id }}/delete" data-confirm="プロジェクトと全ファイルを削除します。よろしいですか？"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="confirm" value="yes"><button class="btn danger">プロジェクトを削除</button></form>
+{% endblock %}

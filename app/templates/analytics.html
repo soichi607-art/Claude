@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}分析{% endblock %}
+{% block content %}
+<h1>分析</h1>
+<p class="muted small">公式APIによる自動取得は未実装（無料枠・審査要件が未確認のため）。各プラットフォームのアナリティクス画面の値を手動入力してください。空欄は「未取得」、0 は「実際に0」として区別して保存します。</p>
+<div class="table-wrap"><table>
+<tr><th>投稿</th><th>ジャンル</th><th>声</th><th>尺</th><th>曜日/時刻</th><th>再生</th><th>平均視聴</th><th>完了率</th><th>いいね</th><th>コメ</th><th>シェア</th><th>フォロー増</th></tr>
+{% for r in rows %}{% set m = r.metric %}
+<tr><td>{{ r.project.title if r.project else '?' }}<br><span class="muted">{{ r.post.platform }} · {{ r.post.output_name }}</span></td><td>{{ r.genre }}</td><td>{{ r.vocal }}</td><td>{{ r.duration }}</td><td>{{ r.weekday }} {{ r.hour }}</td>
+<td>{{ m.views if (m and m.views is not none) else '未取得' }}</td><td>{{ (m.avg_watch_s ~ 's') if (m and m.avg_watch_s is not none) else '未取得' }}</td><td>{{ (m.completion_rate ~ '%') if (m and m.completion_rate is not none) else '未取得' }}</td>
+<td>{{ m.likes if (m and m.likes is not none) else '未取得' }}</td><td>{{ m.comments if (m and m.comments is not none) else '未取得' }}</td><td>{{ m.shares if (m and m.shares is not none) else '未取得' }}</td><td>{{ m.follows_gained if (m and m.follows_gained is not none) else '未取得' }}</td></tr>
+{% else %}<tr><td colspan="12" class="muted">投稿記録がありません。</td></tr>{% endfor %}
+</table></div>
+{% for r in rows %}
+<details class="card"><summary>成績を入力: {{ r.project.title if r.project else '?' }} / {{ r.post.platform }} / {{ r.post.output_name }}</summary>
+<form method="post" action="/analytics/{{ r.post.id }}/metric"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="row">{% for k,l in [('views','再生数'),('avg_watch_s','平均視聴時間(秒)'),('completion_rate','完了率(%)'),('likes','いいね'),('comments','コメント'),('shares','シェア'),('follows_gained','フォロー増加')] %}<div><label>{{ l }}（空欄=未取得）</label><input type="number" step="any" inputmode="decimal" name="{{ k }}"></div>{% endfor %}
+<div><label>投稿日時（未設定なら入力）</label><input type="datetime-local" name="posted_at" value="{{ r.post.posted_at.strftime('%Y-%m-%dT%H:%M') if r.post.posted_at else '' }}"></div></div>
+<label>メモ</label><input type="text" name="note"><button class="btn secondary">記録</button></form></details>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}設定・診断{% endblock %}
+{% block content %}
+<h1>設定・ハードウェア診断</h1>
+<div class="card"><h2>ACE-Step 1.5</h2>
+<dl class="kv"><dt>API URL</dt><dd>{{ settings.acestep_api_url }}</dd><dt>状態</dt><dd><span class="pill {{ 'ok' if ace.reachable else 'err' }}">{{ '接続OK' if ace.reachable else '未接続' }}</span> {{ ace.detail }}</dd><dt>モデル</dt><dd>{{ ace.models | join(', ') if ace.models else '未確認' }}（既定: {{ ace.default_model or '未確認' }}）</dd><dt>サーバー平均処理秒</dt><dd>{{ ace.avg_job_seconds if ace.avg_job_seconds is not none else '未確認' }}</dd><dt>APIキー</dt><dd>{{ '設定済み' if acestep_key_set else '未設定（サーバー側で認証無効なら不要）' }}</dd><dt>ディレクトリ</dt><dd>{{ settings.acestep_dir or '未設定' }}</dd></dl>
+<p class="small muted">起動方法は docs/ACESTEP_SETUP.md。実行優先順位: Intel XPU → CPU → 手動アップロード。</p>
+<div class="row">
+<form method="post" action="/settings/acestep/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="secs" value="10"><label>デバイスラベル（例 xpu / cpu）</label><input type="text" name="device_label" placeholder="xpu または cpu"><button class="btn secondary block" style="margin-top:6px">10秒テストを実行 <span class="pill {{ 'ok' if tests.test10 else 'warn' }}">{{ '成功済' if tests.test10 else '未' }}</span></button></form>
+<form method="post" action="/settings/acestep/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="secs" value="30"><label>&nbsp;</label><input type="text" name="device_label" placeholder="xpu または cpu"><button class="btn secondary block" style="margin-top:6px" {% if not tests.test10 %}disabled{% endif %}>30秒テストを実行 <span class="pill {{ 'ok' if tests.test30 else 'warn' }}">{{ '成功済' if tests.test30 else '未' }}</span></button></form>
+</div></div>
+<div class="card"><h2>ハードウェア診断</h2>
+<form method="post" action="/settings/diagnose"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn secondary">診断を実行して docs/HARDWARE_REPORT.md を更新</button></form>
+{% if diag %}<dl class="kv" style="margin-top:10px">
+<dt>OS</dt><dd>{{ diag.os.system }} {{ diag.os.release }}</dd><dt>CPU</dt><dd>{{ diag.cpu.name }} ({{ diag.cpu.logical_cores }} threads)</dd><dt>メモリ</dt><dd>{{ diag.memory.total_gb }} GB</dd><dt>空き容量</dt><dd>{{ diag.disk.free_gb }} GB</dd>
+<dt>GPU</dt><dd>{{ diag.gpu.devices | join(' / ') }} · VRAM {{ diag.gpu.vram }}</dd><dt>Intel XPU</dt><dd>{{ diag.intel_xpu.xpu_available }} {{ diag.intel_xpu.device_name }} {{ diag.intel_xpu.note or '' }}</dd>
+<dt>Python</dt><dd>{{ diag.python.version }}</dd><dt>Node.js</dt><dd>{{ diag.node }}</dd><dt>Git</dt><dd>{{ diag.git }}</dd><dt>FFmpeg</dt><dd>{{ diag.ffmpeg.ffmpeg }}</dd><dt>ffprobe</dt><dd>{{ diag.ffmpeg.ffprobe }}</dd>
+<dt>Quick Sync</dt><dd>{{ diag.ffmpeg.qsv }}</dd><dt>エンコーダー実測</dt><dd>{% for t in diag.encoder_tests %}{{ t.encoder }}: {{ '成功' if t.ok else '失敗' }}<br>{% endfor %}<strong>採用: {{ encoder }}</strong></dd>
+<dt>ACE-Step</dt><dd>dir {{ diag.acestep.dir }} ({{ diag.acestep.dir_exists }}) · /health {{ diag.acestep.api_health }}</dd><dt>診断日時</dt><dd>{{ diag.generated_at }}</dd></dl>{% else %}<p class="muted">未診断。</p>{% endif %}</div>
+<div class="card"><h2>PC保護</h2><dl class="kv"><dt>同時生成</dt><dd>1件（固定）</dd><dt>CPUスレッド上限</dt><dd>{{ threads }}（SOA_CPU_THREADS）</dd><dt>最低空きメモリ</dt><dd>{{ settings.min_free_mem_gb }} GB</dd><dt>最低空き容量</dt><dd>{{ settings.min_free_disk_gb }} GB</dd><dt>温度上限</dt><dd>{{ settings.max_temp_c }}°C（取得可能な場合のみ）</dd><dt>バッテリー時停止</dt><dd>{{ settings.stop_on_battery }}</dd><dt>案ごとの休止</dt><dd>{{ settings.rest_between_candidates_s }} 秒</dd><dt>現在</dt><dd>{{ '正常' if safety.ok else safety.reasons | join(' / ') }}</dd></dl></div>
+<div class="card"><h2>フォント</h2><dl class="kv"><dt>欧文</dt><dd>{{ fonts.latin }}</dd><dt>日本語</dt><dd>{{ fonts.japanese }}</dd></dl></div>
+<div class="card"><h2>ネットワーク</h2><dl class="kv"><dt>バインド</dt><dd>{{ settings.host }}:{{ settings.port }}（{{ 'localhost のみ' if is_localhost else 'LAN公開 — Basic認証必須' }}）</dd></dl><p class="small muted">iPhone から使うには SOA_HOST=0.0.0.0 と SOA_AUTH_USER / SOA_AUTH_PASSWORD を .env に設定し、同一Wi-Fi で http://PCのIP:{{ settings.port }} を開きます。Web Share でのファイル共有は Secure Context が必要になる場合があり、http://LAN では動かないことがあります（未確認）。</p></div>
+<form method="post" action="/settings/general" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label>既定モード</label><select name="default_mode">{% for k in ['eco','standard','overnight'] %}<option value="{{ k }}" {% if default_mode == k %}selected{% endif %}>{{ k }}</option>{% endfor %}</select><button class="btn secondary" style="margin-top:8px">保存</button></form>
+{% endblock %}

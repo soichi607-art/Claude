@@ -1,0 +1,28 @@
+<label>プロジェクト名 / 曲タイトル</label><input type="text" name="title" value="{{ project.title if project else '' }}" placeholder="例: Neon Rain">
+<label>曲のテーマ（英語だと歌詞のフックに使われます）</label><input type="text" name="theme" value="{{ inputs.theme or '' }}" placeholder="Neon Rain / 夜の高速道路 など">
+<label>自由記述（雰囲気・世界観・避けたいこと）</label><textarea name="free_text">{{ inputs.free_text or '' }}</textarea>
+<div class="row">
+<div><label>現代ジャンル</label><select name="genre_modern"><option value="">— 未選択 —</option>{% for k,v in modern.items() %}<option value="{{ k }}" {% if inputs.genre_modern == k %}selected{% endif %}>{{ v.label }}</option>{% endfor %}</select></div>
+<div><label>2010年代EDM要素</label><select name="genre_2010s"><option value="">— 未選択 —</option>{% for k,v in edm2010.items() %}<option value="{{ k }}" {% if inputs.genre_2010s == k %}selected{% endif %}>{{ v.label }}</option>{% endfor %}</select></div>
+</div>
+{% for key,label in [('brightness','明るさ'),('intensity','激しさ'),('emotion','エモさ'),('festival','フェス感'),('futuristic','未来感'),('catchiness','キャッチーさ')] %}
+<label>{{ label }} <span class="pill" id="out_{{ key }}"></span></label><input type="range" name="{{ key }}" min="0" max="100" value="{{ inputs[key] if inputs[key] is defined else 50 }}" data-out="out_{{ key }}">
+{% endfor %}
+<div class="row">
+<div><label>BPM（空欄=ジャンル既定）</label><input type="number" name="bpm" inputmode="numeric" min="60" max="200" value="{{ inputs.bpm or '' }}"></div>
+<div><label>フル版の長さ（秒, 120〜180）</label><input type="number" name="duration_target" inputmode="numeric" min="120" max="180" value="{{ inputs.duration_target or 150 }}"></div>
+</div>
+<div class="row">
+<div><label>ボーカル</label><select name="vocal_type">{% for k,l in [('female','女声'),('male','男声'),('duet','デュエット')] %}<option value="{{ k }}" {% if inputs.vocal_type == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+<div><label>音域</label><select name="vocal_pitch">{% for k,l in [('mid','標準'),('high','高音'),('low','低音')] %}<option value="{{ k }}" {% if inputs.vocal_pitch == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+<div><label>声質</label><select name="vocal_tone">{% for k,l in [('bright','明るい'),('sad','切ない'),('powerful','力強い'),('clear','透明感')] %}<option value="{{ k }}" {% if inputs.vocal_tone == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+</div>
+<label>NGワード（カンマ区切り）</label><input type="text" name="ng_words" value="{{ inputs.ng_words or '' }}">
+<details><summary>参考情報（名前は保存のみ。プロンプトには送りません）</summary>
+<label>参考アーティスト</label><input type="text" name="ref_artists" value="{{ inputs.ref_artists or '' }}">
+<label>参考曲</label><input type="text" name="ref_songs" value="{{ inputs.ref_songs or '' }}">
+<label>参考URL（ダウンロードは行いません）</label><input type="text" name="ref_urls" value="{{ inputs.ref_urls or '' }}">
+<p class="muted small">音響解析は、解析権限を確認してアップロードした音源に限定されます（プロジェクト画面から）。特定アーティスト名は中立的特徴に変換され、変換前後は監査ログに保存されます。</p>
+</details>
+<label>生成モード</label>
+<select name="mode">{% for k,l in [('eco','Eco：30秒×3案 → 採用1案だけ2〜3分化（初期設定）'),('standard','Standard：60秒×3案 → 採用1案だけ2〜3分化'),('overnight','Overnight：2〜3分×3案を夜間に順次生成')] %}<option value="{{ k }}" {% if (project and project.mode == k) or (not project and k == 'eco') %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>

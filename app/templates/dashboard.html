@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero">
+  <h1>ダッシュボード</h1>
+  <div class="row tight">
+    <span class="pill {{ 'ok' if ace_ok else 'err' }}">ACE-Step API: {{ '接続OK' if ace_ok else '未接続' }}</span>
+    <span class="pill {{ 'ok' if tests.test10 else 'warn' }}">10秒テスト {{ '成功' if tests.test10 else '未' }}</span>
+    <span class="pill {{ 'ok' if tests.test30 else 'warn' }}">30秒テスト {{ '成功' if tests.test30 else '未' }}</span>
+  </div>
+  {% if not ace_ok %}<p class="muted small">ACE-Step が未接続でも、音源を手動アップロードして MV・ショート・投稿パッケージまで完成できます。</p>{% endif %}
+  <a class="btn block" href="/projects/new">＋ 新規プロジェクト</a>
+</div>
+<div class="card"><h2>次にやること</h2>
+{% if next_step %}<a class="btn secondary block" href="{{ next_step.href }}">→ {{ next_step.label }}</a><div class="small muted" style="margin-top:6px">{{ next_step.hint }}</div>{% else %}<div class="pill ok">すべて完了。投稿準備へ進めます。</div>{% endif %}
+<details><summary>チェックリストを見る</summary>
+{% for c in checklist %}<div class="chk"><span class="pill {{ 'ok' if c.ok else '' }}" style="min-width:3.2em;text-align:center">{{ '済' if c.ok else '未' }}</span><span><a href="{{ c.href }}">{{ c.label }}</a><br><span class="muted small">{{ c.hint }}</span></span></div>{% endfor %}
+</details>
+<a class="muted small" href="/help">操作ガイドを開く →</a></div>
+{% if jobs %}<div class="card"><h2>実行中・待機中のジョブ</h2>
+{% for j in jobs %}<div class="row"><span>#{{ j.id }} {{ j.kind }} <span class="pill acc">{{ j.status }}</span></span><span class="muted small">{{ j.note }}</span></div>{% endfor %}
+<a href="/jobs" class="muted small">進捗を見る →</a></div>{% endif %}
+{% if recent_fail %}<div class="card"><h2>最近の失敗</h2>{% for j in recent_fail %}<div class="small"><span class="pill err">#{{ j.id }}</span> {{ j.error[:140] }}</div>{% endfor %}</div>{% endif %}
+<div class="card"><h2>プロジェクト</h2>
+{% if not projects %}<p class="muted">まだプロジェクトがありません。</p>{% endif %}
+{% for p in projects %}
+<div class="card soft">
+  <div class="row"><strong><a href="/projects/{{ p.id }}">{{ p.title or '無題' }}</a></strong><span class="pill">{{ status_ja.get(p.status, p.status) }}</span></div>
+  <div class="muted small">モード: {{ p.mode }} · 音源あり案: {{ counts[p.id].cands }} · 動画出力: {{ counts[p.id].outputs }} · 更新 {{ p.updated_at.strftime('%m/%d %H:%M') }}</div>
+  <div class="row tight" style="margin-top:8px">
+    <a class="btn ghost" href="/projects/{{ p.id }}/compare">3案</a><a class="btn ghost" href="/projects/{{ p.id }}/mv">MV</a><a class="btn ghost" href="/projects/{{ p.id }}/shorts">ショート</a><a class="btn ghost" href="/projects/{{ p.id }}/publish">投稿</a>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
