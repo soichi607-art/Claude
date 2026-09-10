@@ -1,11 +1,11 @@
-# STATUS — SoA EDM Studio（2026-09-09）
+# STATUS — SoA EDM Studio（2026-09-10 更新）
 
 凡例: ✅ 完成・テスト済 / 🟡 実装済だが実機・外部サービスで未検証 / ⛔ 未実装（意図的）
 
 ## 完了条件との対応
 | 条件 | 状態 | 備考 |
 |---|---|---|
-| ローカルで起動できる | ✅ | `python run.py`（127.0.0.1:8000）。TestClient と実サーバーで全画面 200 |
+| ローカルで起動できる | ✅ | `start_windows.bat` / `./start.sh` でセットアップ込みの起動、`python run.py --open`。`--check` で前提チェック。TestClient と実サーバーで全画面 200 |
 | iPhone で操作できる | 🟡 | Chromium 390px エミュレーション（iPhone UA）で 12 画面を確認、横スクロールなし。実機 iPhone Safari は未検証 |
 | 楽曲3案を管理できる | ✅ | A/B/C のプロンプト・歌詞・seed・音源・採用をテスト |
 | ACE-Step 利用可否を正しく表示できる | ✅ | 公式 `/health` `/v1/models` `/v1/stats` を表示。未接続時は「未接続」。偽サーバーで API.md 準拠の往復をテスト |
@@ -14,7 +14,7 @@
 | 25・65・90・Full 版を出力できる | ✅ | 6 本のショート＋フル 2 本。編集プランの合計秒数・ループ尾をテスト |
 | 投稿素材を 2〜3 操作でアプリへ渡せる | 🟡 | Web Share API（files）フロー＋フォールバックを実装。iOS 実機・LAN http での動作は未確認 |
 | 有料サービスを呼ばない | ✅ | 外部通信は ACE-Step（localhost）のみ。CSP `connect-src 'self'` |
-| テストが通る | ✅ | 31 件パス（docs/TEST_REPORT.md） |
+| テストが通る | ✅ | 34 件パス（docs/TEST_REPORT.md） |
 | STATUS.md | ✅ | 本書 |
 
 ## Phase 別
@@ -35,7 +35,8 @@
 | 13 無料 GPU Notebook | 🟡 | .ipynb 生成。Colab/Kaggle での実行・Wan2.1 の実動作は未確認 |
 | 14 AI 動画 ZIP 取り込み | ✅ | |
 | 15 分析画面 | ✅ | 手動入力。未取得（空欄）と 0 を区別 |
-| 16 テスト・ドキュメント | ✅ | |
+| 16 テスト・ドキュメント | ✅ | アプリ内「ガイド」タブ、ダッシュボード「次にやること」、docs/USER_GUIDE_JA.md |
+| 17 操作性の仕上げ（2026-09-10） | ✅ | ワンクリック起動スクリプト、前提チェック、HW エンコーダー失敗時の libx264 自動フォールバック、新規 venv からの再現インストール検証 |
 
 ## 未実装（意図的）
 - 自動投稿、公式 API による成績取得、実機での画像/動画生成モデル常駐（docs/KNOWN_LIMITATIONS.md）

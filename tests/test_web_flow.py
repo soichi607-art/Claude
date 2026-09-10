@@ -156,3 +156,17 @@ def test_settings_diagnose_and_acestep_unreachable(client, csrf):
 
 def test_delete_requires_confirmation(client, csrf):
     assert client.post("/projects/1/delete", data={"csrf_token": csrf}).status_code == 400
+
+
+def test_help_and_dashboard_checklist(client):
+    page = client.get("/help").text
+    assert "全体の流れ" in page and "start_windows.bat" in page
+    home = client.get("/").text
+    assert "次にやること" in home and "チェックリスト" in home
+
+
+def test_run_preflight_reports_ok():
+    import run
+
+    problems = run.preflight()
+    assert problems == [] or all("LAN公開" in p for p in problems)

@@ -62,3 +62,16 @@ def test_hexcolor_validation():
 def test_covers(tmp_path: Path):
     res = covers.make_all_covers(tmp_path, "Title", "AERA", "#37E5FF", None, 1, "サブ")
     assert all(p.exists() for p in res.values())
+
+
+def test_encoder_fallback_to_libx264(test_audio: Path, tmp_path: Path):
+    """A hardware encoder that fails on this machine must not break the render."""
+    spec = mv_builder.RenderSpec(audio_path=test_audio, out_path=tmp_path / "fb.mp4", width=144, height=256, fps=10, title="",
+                                 lyrics_en="", analysis=audio_analysis.analyze(test_audio), encoder="h264_qsv", show_spectrum=False,
+                                 work_dir=tmp_path / "w")
+    out = mv_builder.render(spec)
+    assert out.exists() and ff.probe(out).has_video
+    # either QSV really worked (real Intel GPU) or we fell back — both are valid, but the choice must be recorded
+    assert spec.encoder in ("h264_qsv", "libx264")
+    if spec.encoder == "libx264":
+        assert spec.encoder_fallback_reason

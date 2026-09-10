@@ -10,13 +10,18 @@
 ## 構成
 Python 3.11/3.12 · FastAPI · Jinja2 · SQLite (SQLModel) · FFmpeg/ffprobe · librosa · Pillow · pytest · PWA。詳細は `docs/ARCHITECTURE.md`、判断記録は `docs/ADR.md`。
 
-## セットアップ
+## いちばん簡単な起動
+- Windows: `start_windows.bat` をダブルクリック（初回は仮想環境と依存を自動インストール、ブラウザが開きます）
+- macOS / Linux: `./start.sh`
+- 操作手順はアプリ内「ガイド」タブ、または `docs/USER_GUIDE_JA.md`
+
+## 手動セットアップ
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 python scripts/diagnose.py      # docs/HARDWARE_REPORT.md を生成（実機で必ず再実行）
-python run.py                   # http://127.0.0.1:8000
+python run.py --open            # http://127.0.0.1:8000 をブラウザで開く（--check で前提チェックのみ）
 pytest                          # テスト（FFmpeg が必要）
 ```
 iPhone からの利用と制作の流れは `docs/QUICK_START_JA.md`、ACE-Step の導入は `docs/ACESTEP_SETUP.md`、無料 GPU Notebook は `docs/FREE_VIDEO_NOTEBOOK.md`。

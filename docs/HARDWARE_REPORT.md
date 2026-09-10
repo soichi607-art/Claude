@@ -1,6 +1,6 @@
 # ハードウェア診断レポート
 
-- 生成日時: 2026-09-09T16:34:53+00:00
+- 生成日時: 2026-09-10T00:14:44+00:00
 - 注意: このレポートは **このスクリプトを実行したマシン** の実測値です。別のPCで使う場合は `python scripts/diagnose.py` を再実行してください。
 
 ## OS
@@ -9,14 +9,14 @@
 - Arch: x86_64
 
 ## CPU
-- 名称: Intel(R) Xeon(R) Processor @ 2.10GHz
+- 名称: Intel(R) Xeon(R) Processor @ 2.80GHz
 - 論理コア: 4 / 物理コア: 4
 
 ## メモリ
-- 合計: 16.9 GB / 利用可能: 16.0 GB
+- 合計: 16.9 GB / 利用可能: 15.8 GB
 
 ## ストレージ
-- パス: /home/user/Claude/data/tmp
+- パス: /tmp/claude-0/-home-user-Claude/911beafc-79a6-5fa8-9692-82bc11514909/scratchpad/pyt3/data/tmp
 - 合計: 270.6 GB / 空き: 30.7 GB
 
 ## GPU
@@ -52,9 +52,9 @@
 - hevc_qsv: あり
 
 ## エンコーダー実動作テスト（1秒のテスト映像を実際にエンコード）
-- h264_qsv: 失敗 — [h264_qsv @ 0x557d6c5dd5c0] Error creating a MFX session: -9.
-[vost#0:0/h264_qsv @ 0x557d6c5dd1c0] Error while opening encoder - maybe incorrect parameters such
-- h264_vaapi: 失敗 — [AVHWDeviceContext @ 0x55e31e8c7f40] No VA display found for device /dev/dri/renderD128.
+- h264_qsv: 失敗 — [h264_qsv @ 0x55adb7c8c640] Error creating a MFX session: -9.
+[vost#0:0/h264_qsv @ 0x55adb7c8c240] Error while opening encoder - maybe incorrect parameters such
+- h264_vaapi: 失敗 — [AVHWDeviceContext @ 0x55ee86edef40] No VA display found for device /dev/dri/renderD128.
 Device creation failed: -22.
 Failed to set value '/dev/dri/renderD128' 
 - libx264: 成功 — OK
@@ -63,8 +63,8 @@ Failed to set value '/dev/dri/renderD128'
 ## ACE-Step 1.5
 - ディレクトリ: 未設定 (存在: False)
 - venv: 未確認
-- API URL: 未設定
-- /health: 未確認
+- API URL: http://127.0.0.1:1
+- /health: 接続不可 (ConnectError)
 
 ## 電源・温度
 - バッテリー: {'present': False}

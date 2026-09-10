@@ -71,6 +71,7 @@ class RenderSpec:
     show_waveform: bool = True
     show_spectrum: bool = True
     work_dir: Path | None = None
+    encoder_fallback_reason: str = ""
 
 
 # ---------------------------------------------------------------- planning
@@ -280,9 +281,22 @@ def render_section(spec: RenderSpec, sec: dict[str, Any], idx: int, work: Path, 
         fx.append(f"fade=t=in:st=0:d={fade}")
     fx.append(f"fade=t=out:st={max(0.0, dur - 0.25):.3f}:d=0.25")
     graph.append(chain + ",".join(fx) + f",fps={fps},format=yuv420p[vout]")
-    args = inputs + ["-filter_complex", ";".join(graph), "-map", "[vout]", "-t", f"{dur:.3f}", "-an", *ff.encoder_args(spec.encoder, "standard"), "-r", str(fps), str(out)]
-    ff.run(args, timeout=3600)
+    args = inputs + ["-filter_complex", ";".join(graph), "-map", "[vout]", "-t", f"{dur:.3f}", "-an"]
+    _run_with_fallback(spec, args + [*ff.encoder_args(spec.encoder, "standard"), "-r", str(fps), str(out)],
+                       lambda enc: args + [*ff.encoder_args(enc, "standard"), "-r", str(fps), str(out)], timeout=3600)
     return out
+
+
+def _run_with_fallback(spec: RenderSpec, args: list[str], rebuild: Callable[[str], list[str]], timeout: int) -> None:
+    """Run ffmpeg; if a hardware encoder fails, retry once with libx264 and remember the choice."""
+    try:
+        ff.run(args, timeout=timeout)
+    except ff.FFmpegError as exc:
+        if spec.encoder == "libx264" or str(exc) == "cancelled":
+            raise
+        spec.encoder_fallback_reason = str(exc)[-300:]
+        spec.encoder = "libx264"
+        ff.run(rebuild("libx264"), timeout=timeout)
 
 
 # ---------------------------------------------------------------- assembly
@@ -358,10 +372,11 @@ def render(spec: RenderSpec, on_progress: Callable[[int, str], None] | None = No
         cur = f"[t{i}]"
     # unified grade
     g.append(f"{cur}colorbalance=bs=0.04:bm=0.02:bh=-0.02,curves=preset=increase_contrast,format=yuv420p[vfinal]")
-    args = inputs + ["-filter_complex", ";".join(g), "-map", "[vfinal]", "-map", "1:a", *ff.encoder_args(spec.encoder, spec.quality), *ff.audio_args(),
-                     "-movflags", "+faststart", "-shortest", "-r", str(fps), str(spec.out_path)]
+    base = inputs + ["-filter_complex", ";".join(g), "-map", "[vfinal]", "-map", "1:a"]
+    tail = [*ff.audio_args(), "-movflags", "+faststart", "-shortest", "-r", str(fps), str(spec.out_path)]
     spec.out_path.parent.mkdir(parents=True, exist_ok=True)
-    ff.run(args, timeout=7200)
+    _run_with_fallback(spec, base + [*ff.encoder_args(spec.encoder, spec.quality)] + tail,
+                       lambda enc: base + [*ff.encoder_args(enc, spec.quality)] + tail, timeout=7200)
     if on_progress:
         on_progress(98, "一時ファイルを削除中")
     shutil.rmtree(work, ignore_errors=True)

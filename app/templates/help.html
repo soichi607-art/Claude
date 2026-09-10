@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% block title %}操作ガイド{% endblock %}
+{% block content %}
+<h1>操作ガイド</h1>
+<p class="muted small">このアプリは PC 上で動くローカルアプリです。iPhone からは同じ Wi‑Fi 経由で操作します（設定画面のネットワーク欄を参照）。</p>
+
+<div class="card"><h2>全体の流れ（7ステップ）</h2>
+<ol class="steps">
+<li><strong>新規プロジェクト</strong>（下メニュー「＋新規」）: テーマ・ジャンル・スライダー・ボーカルを選んで「作成」。3案（A/B/C）のプロンプトと英日対訳歌詞が自動で作られます。</li>
+<li><strong>楽曲を用意</strong>（プロジェクト画面）: ACE-Step が使える場合は「3案の生成を開始」。使えない場合は各案の「手動アップロード」に自作音源を登録。</li>
+<li><strong>3案比較</strong>: 聴き比べて「この案を採用」。ACE-Step があればフル版（2〜3分）を続けて生成できます。</li>
+<li><strong>MV編集</strong>: 「フルMVを描画」で 9:16 / 16:9 のモーショングラフィックス MV を作成。AI動画は任意（無料 GPU Notebook → ZIP 取り込み）。</li>
+<li><strong>ショート編集</strong>: 「一括描画」で 25秒 / 65秒 / 90秒（YouTube・TikTok 用）とフル版をまとめて出力。</li>
+<li><strong>投稿準備</strong>: 「テキスト・カバー画像・post_package.zip を出力」→ 公開前チェック 8 項目 → 「共有画面へ」→ iPhone の共有シートで YouTube / TikTok を選び、アプリで公開 → 「投稿済みとして記録」。</li>
+<li><strong>分析</strong>: 再生数などを手動入力（空欄＝未取得）。ジャンル・声・尺・曜日で比較できます。</li>
+</ol></div>
+
+<div class="card"><h2>初回セットアップ（PC）</h2>
+<ol class="steps small">
+<li>Windows: <code>start_windows.bat</code> をダブルクリック。macOS/Linux: <code>./start.sh</code>。初回は仮想環境の作成と依存インストール（数分）を自動で行い、ブラウザが開きます。</li>
+<li>FFmpeg が無いと止まります。<a href="https://ffmpeg.org/download.html" target="_blank" rel="noopener">ffmpeg.org</a> から入手して PATH に追加してください。</li>
+<li>「設定」→「診断を実行」で GPU / Intel XPU / Quick Sync の可否を確認（このレポートは実行した PC の実測値です）。</li>
+<li>ACE-Step を使う場合は「設定」の手順（docs/ACESTEP_SETUP.md）で API サーバーを起動し、「10秒テスト」→「30秒テスト」を実行。両方成功すると3案生成が有効になります。</li>
+</ol></div>
+
+<div class="card"><h2>iPhone から使う</h2>
+<ol class="steps small">
+<li>PC の <code>.env</code> に <code>SOA_HOST=0.0.0.0</code>、<code>SOA_AUTH_USER</code>、<code>SOA_AUTH_PASSWORD</code> を設定して再起動（LAN 公開時は認証必須）。</li>
+<li>iPhone を同じ Wi‑Fi につなぎ、Safari で <code>http://PCのIPアドレス:{{ app_port }}</code> を開く。PC の IP は Windows なら <code>ipconfig</code>、macOS なら システム設定 → Wi‑Fi で確認。</li>
+<li>Safari の共有ボタン → 「ホーム画面に追加」でアプリのように使えます。</li>
+<li>共有画面の Web Share が使えない場合（http 接続では制限される場合があります・未確認）は、画面内のフォールバック手順（動画保存 → 投稿文コピー → アプリで投稿）を使ってください。</li>
+</ol></div>
+
+<div class="card"><h2>代表者の承認ポイント</h2>
+<ul class="small">
+<li><strong>キャラクター基準画像の確定</strong>（AERA 画面）: 確定するまで AI 動画生成パックは出力されません。MV のモーショングラフィックス版は未確定でも作れます（映像に「基準画像未確定」表示）。</li>
+<li><strong>公開前チェック</strong>（投稿準備画面）: AI 生成申告・商用申告・模倣なし・参考名なし・NG ワードなし・ロゴなし・収益化非保証・代表者承認の 8 項目。</li>
+<li><strong>最終公開ボタン</strong>は YouTube / TikTok アプリ側で代表者が押します。自動投稿はしません。</li>
+</ul></div>
+
+<div class="card"><h2>困ったとき</h2>
+<ul class="small">
+<li>「ACE-Step API: 未接続」→ ACE-Step サーバーが起動していません。手動アップロードで先に進めます。</li>
+<li>ジョブが「安全停止」→ 空きメモリ・空き容量・バッテリー駆動・温度のいずれか。進捗画面の PC 保護欄に理由が出ます。</li>
+<li>動画に日本語テロップが出ない → 設定画面「フォント」で日本語フォントが「未設定」なら <code>.env</code> の <code>SOA_FONT_PATH_JA</code> にフォントファイルを指定。</li>
+<li>描画が遅い → <code>.env</code> の <code>SOA_RENDER_SCALE=0.5</code> で確認用の低解像度描画ができます（本番は 1.0）。</li>
+<li>詳細: docs/QUICK_START_JA.md、docs/USER_GUIDE_JA.md、docs/KNOWN_LIMITATIONS.md</li>
+</ul></div>
+{% endblock %}

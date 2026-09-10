@@ -12,7 +12,7 @@ from sqlmodel import select
 from .config import ROOT, settings
 from .db import init_db, session_scope
 from .models import Character
-from .routers import analytics, characters, dashboard, generation, mv, projects, publish, settings_page, shorts
+from .routers import analytics, characters, dashboard, generation, help, mv, projects, publish, settings_page, shorts
 from .security import check_basic_auth, static_root
 from .services import covers
 from .services.generation import worker
@@ -93,7 +93,7 @@ async def http_exc(request: Request, exc: HTTPException):
     return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
 
-for r in (dashboard, projects, generation, characters, mv, shorts, publish, analytics, settings_page):
+for r in (dashboard, projects, generation, characters, mv, shorts, publish, analytics, settings_page, help):
     app.include_router(r.router)
 
 

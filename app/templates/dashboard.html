@@ -10,6 +10,12 @@
   {% if not ace_ok %}<p class="muted small">ACE-Step が未接続でも、音源を手動アップロードして MV・ショート・投稿パッケージまで完成できます。</p>{% endif %}
   <a class="btn block" href="/projects/new">＋ 新規プロジェクト</a>
 </div>
+<div class="card"><h2>次にやること</h2>
+{% if next_step %}<a class="btn secondary block" href="{{ next_step.href }}">→ {{ next_step.label }}</a><div class="small muted" style="margin-top:6px">{{ next_step.hint }}</div>{% else %}<div class="pill ok">すべて完了。投稿準備へ進めます。</div>{% endif %}
+<details><summary>チェックリストを見る</summary>
+{% for c in checklist %}<div class="chk"><span class="pill {{ 'ok' if c.ok else '' }}" style="min-width:3.2em;text-align:center">{{ '済' if c.ok else '未' }}</span><span><a href="{{ c.href }}">{{ c.label }}</a><br><span class="muted small">{{ c.hint }}</span></span></div>{% endfor %}
+</details>
+<a class="muted small" href="/help">操作ガイドを開く →</a></div>
 {% if jobs %}<div class="card"><h2>実行中・待機中のジョブ</h2>
 {% for j in jobs %}<div class="row"><span>#{{ j.id }} {{ j.kind }} <span class="pill acc">{{ j.status }}</span></span><span class="muted small">{{ j.note }}</span></div>{% endfor %}
 <a href="/jobs" class="muted small">進捗を見る →</a></div>{% endif %}
