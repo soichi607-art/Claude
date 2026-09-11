@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-09-11 22:33 UTC",
+  "metrics": [],
+  "directives": [
+    "まだ計測データがない。第1話は作品設定どおりに書き、冒頭3文で異変を提示することだけを最優先にする。"
+  ],
+  "warnings": [
+    "DB が見つかりません: /home/user/Claude/note-autopilot-shitou/data_b/note_autopilot.db。まだ1話も公開していない場合は正常です。"
+  ]
+}

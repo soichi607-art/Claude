@@ -10,6 +10,9 @@ note-autopilot 本体は「1回の実行で1記事」を前提にしており、
   advance  … 1話ぶん進める。publish が成功したときだけ実行する。
   status   … 現在の状態を表示する。
   set N    … 話数を手動で N に合わせる(やり直し・巻き戻し用)。
+  mark-prepared … 現在の話の記事生成が完了したことを記録する。
+  is-prepared   … 現在の話の記事が生成済みなら終了コード0、未生成なら1を返す。
+                  (生成と公開を別の時刻に分けても二重生成しないようにするため)
 
 終了コード:
   0  … 正常
@@ -25,6 +28,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERIES_PATH = os.path.join(ROOT, "series", "shitou_series.json")
 STATE_PATH = os.path.join(ROOT, "data_b", "series_state.json")
+INSIGHTS_PATH = os.path.join(ROOT, "data_b", "series_insights.json")
 TPL_DIR = os.path.join(ROOT, "prompts_b", "_templates")
 OUT_DIR = os.path.join(ROOT, "prompts_b")
 DRAFTS_DIR = os.path.join(ROOT, "output_b", "drafts")
@@ -117,6 +121,34 @@ def render_prev_summaries(series, state):
     return "\n".join(lines)
 
 
+def render_improvement():
+    """shitou_analyze.py が書いた改善指示を読む。無ければ空扱いにする。"""
+    if not os.path.exists(INSIGHTS_PATH):
+        return ("まだ分析データがない(scripts/shitou_analyze.py が未実行、または公開実績なし)。"
+                "作品設定どおりに書くこと。")
+    try:
+        with open(INSIGHTS_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+    except (ValueError, OSError):
+        return "分析データを読めなかった。作品設定どおりに書くこと。"
+
+    lines = []
+    directives = data.get("directives") or []
+    if directives:
+        lines.append("(分析日時: {0})".format(data.get("generated_at", "不明")))
+        lines += ["- {0}".format(d) for d in directives]
+    metrics = data.get("metrics") or []
+    if metrics:
+        lines.append("")
+        lines.append("公開済みの実測値:")
+        for m in metrics:
+            lines.append("- 第{0}話: PV {1:.0f} / スキ {2:.0f} / スキ率 {3}%".format(
+                m["ep"], m["pv"], m["likes"], m["like_rate"]))
+    if not lines:
+        return "分析の結果、特筆すべき改善点はない。作品設定どおりに書くこと。"
+    return "\n".join(lines)
+
+
 def render_bible(series):
     s = series["setting"]
     lines = [
@@ -177,6 +209,7 @@ def cmd_sync():
         "@@EPISODE_SPEC@@": spec,
         "@@PREV_SUMMARIES@@": render_prev_summaries(series, state),
         "@@SERIES_BIBLE@@": render_bible(series),
+        "@@IMPROVEMENT@@": render_improvement(),
     }
 
     for tpl, out in TEMPLATES.items():
@@ -238,6 +271,7 @@ def cmd_advance():
         "head": newest_draft_head(),
     })
     state["next_episode"] = ep + 1
+    state.pop("prepared_ep", None)
     save_state(state)
     print("[shitou] 第{0}話を公開済みとして記録し、次を第{1}話にしました。".format(ep, ep + 1))
     if state["next_episode"] > series["total_episodes"]:
@@ -268,10 +302,30 @@ def cmd_set(arg):
         sys.stderr.write("[shitou] 話数は1以上にしてください。\n")
         return 1
     state["next_episode"] = n
+    state.pop("prepared_ep", None)
     state["published"] = [r for r in state.get("published", []) if r["ep"] < n]
     save_state(state)
     print("[shitou] 次に書く話を第{0}話にしました。".format(n))
     return 0
+
+
+def cmd_mark_prepared():
+    series = load_series()
+    state = load_state(series)
+    state["prepared_ep"] = state["next_episode"]
+    save_state(state)
+    print("[shitou] 第{0}話の記事を生成済みとして記録しました。".format(state["next_episode"]))
+    return 0
+
+
+def cmd_is_prepared():
+    series = load_series()
+    state = load_state(series)
+    if state.get("prepared_ep") == state["next_episode"]:
+        print("[shitou] 第{0}話は生成済みです。".format(state["next_episode"]))
+        return 0
+    print("[shitou] 第{0}話はまだ生成されていません。".format(state["next_episode"]))
+    return 1
 
 
 def main(argv):
@@ -287,6 +341,10 @@ def main(argv):
         return cmd_status()
     if cmd == "set":
         return cmd_set(argv[2] if len(argv) > 2 else None)
+    if cmd == "mark-prepared":
+        return cmd_mark_prepared()
+    if cmd == "is-prepared":
+        return cmd_is_prepared()
     sys.stderr.write("[shitou] 不明なコマンド: {0}\n".format(cmd))
     return 1
 

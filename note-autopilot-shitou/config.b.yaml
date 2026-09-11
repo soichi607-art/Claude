@@ -51,6 +51,10 @@ generator:
   quality_gate:
     # 採点の4軸名(fact/value/unique/safety)はコード側の JSON スキーマに合わせて維持し、
     # 各軸が「小説として何を見るか」だけを prompts_b/quality_gate.txt で再定義している。
+    # 公開できない最大の原因はここ。80点未満の話は公開されず output_b/hold/ に残る。
+    # prepare-b.ps1 / daily-b.ps1 が generate を最大3回やり直すため、
+    # 1回の投稿日につき最大6本の下書きが試される(3回 × max_attempts 2回)。
+    # それでも通らない日が続く場合にだけ、この値を 75 へ下げる(品質との引き換え)。
     min_score: 80
     max_attempts: 2
     # --- 以下3つが小説運用のための変更点(理由を必ず読むこと) ---

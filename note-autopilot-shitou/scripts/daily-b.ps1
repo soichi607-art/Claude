@@ -1,46 +1,80 @@
-# 史灯(アカウントB)日次パイプライン — 火・木・土 17:00 実行想定
-# 既存の daily.ps1 とは別ファイル。B は連載小説のため、前後に話数管理の処理が入る。
+# 史灯(アカウントB)公開パイプライン — 火・木・土 17:00 実行想定
+#
+# 設計方針: 「公開に失敗しない」ためにやっていること
+#   1. 記事は 09:00 の prepare-b.ps1 で生成済み(生成失敗と公開失敗を切り離す)
+#   2. 未生成なら、この場で生成をやり直す
+#   3. publish は待機を挟んで最大3回まで再試行する
+#   4. それでも失敗したら 19:30 / 21:30 の catchup-b.ps1 が再試行する
+#   5. 公開できなかった話は話数を進めないので、次の投稿日にも再試行される
+#
+# 例外: 終了コード2(401/403/429 による緊急停止)はリトライしない。
+#       アカウント凍結を避けるための安全装置であり、外してはいけない。
 
-Set-Location C:\Users\User\Documents\note-autopilot
-$env:PYTHONUTF8 = 1
+. "$PSScriptRoot\_shitou-lib.ps1"
+Enter-ShitouProject
 
-# --- 1. 連載の進行状態を4つのプロンプトへ反映する(必須) ---
+if (Test-ShitouStopped) {
+    Send-ShitouNotify "公開: 緊急停止中(data_b/STOP)のため中止します。STOPファイルを手動削除するまで再開しません。"
+    exit 2
+}
+
+# --- 1. 連載の進行状態をプロンプトへ反映 ---
 uv run python scripts\shitou_state.py sync
 $sync = $LASTEXITCODE
-if ($sync -eq 20) {
-    Write-Host "[daily-b] 全話完了済みのため、本日は何もしません。"
-    exit 0
-}
+if ($sync -eq 20) { Write-ShitouLog "全話完了済みのため何もしません。"; exit 0 }
 if ($sync -ne 0) {
-    Write-Error "[daily-b] プロンプト生成に失敗しました(終了コード $sync)。以降を中止します。"
+    Send-ShitouNotify "公開: プロンプト生成に失敗しました(終了コード $sync)。"
     exit 1
 }
 
-# --- 2. 収集 → 選定 → 生成 ---
-foreach ($cmd in "collect", "analyze", "generate") {
-    uv run python -m note_autopilot --config config.b.yaml $cmd
-    $code = $LASTEXITCODE
-    if ($code -eq 2) { Write-Error "[daily-b] 緊急停止中(data_b/STOP)。"; exit 2 }
+# --- 2. 疎通確認(投稿する前に Cookie の生死を確かめる) ---
+uv run python -m note_autopilot --config config.b.yaml healthcheck --live
+if ($LASTEXITCODE -ne 0) {
+    Send-ShitouNotify ("公開: healthcheck --live が失敗しました。Cookie 失効の可能性が高いです。" +
+        "B専用ブラウザで note にログインし scripts\set-cookie.ps1 -Account B を実行してください。" +
+        "復旧後、19:30 / 21:30 の再試行で自動的に公開されます。")
+    # 記事は残るので、ここで止めても話数は進まない。次の機会に公開される。
+    exit 10
+}
+
+# --- 3. 記事が未生成なら、この場で作る ---
+uv run python scripts\shitou_state.py is-prepared
+if ($LASTEXITCODE -ne 0) {
+    Write-ShitouLog "記事が未生成のため、ここで生成します。"
+    Invoke-ShitouStep -Command "collect" -RetryOn @(8) -MaxAttempts 2 | Out-Null
+
+    $code = Invoke-ShitouStep -Command "analyze" -RetryOn @(3,4) -MaxAttempts 3
+    if ($code -eq 2) { exit 2 }
     if ($code -ne 0) {
-        # 1=対象なし / 3=note日次上限 / 4=LLM利用不可 / 5=品質ゲート保留
-        Write-Host "[daily-b] $cmd が終了コード $code で終了したため、本日の投稿は行いません。"
+        Send-ShitouNotify "公開: analyze が終了コード $code で失敗し、本日の公開ができません。"
         exit $code
     }
+
+    $code = Invoke-ShitouStep -Command "generate" -RetryOn @(3,4,5) -MaxAttempts 3
+    if ($code -eq 2) { exit 2 }
+    if ($code -ne 0) {
+        Send-ShitouNotify ("公開: generate が終了コード $code で失敗し、本日の公開ができません。" +
+            "品質ゲート保留(5)の場合、記事は output_b/hold/ にあります。")
+        exit $code
+    }
+    uv run python scripts\shitou_state.py mark-prepared
 }
 
-# --- 3. 公開 ---
-uv run python -m note_autopilot --config config.b.yaml publish
-$pub = $LASTEXITCODE
-if ($pub -eq 2) { Write-Error "[daily-b] 緊急停止中(data_b/STOP)。"; exit 2 }
+# --- 4. 公開(最大3回・待機付き) ---
+#     6=note投稿失敗 はリトライする。2=緊急停止 はリトライしない。
+$pub = Invoke-ShitouStep -Command "publish" -RetryOn @(6) -MaxAttempts 3
+if ($pub -eq 2) { exit 2 }
 
-# --- 4. 公開が成功したときだけ話数を1つ進める ---
 if ($pub -eq 0) {
     uv run python scripts\shitou_state.py advance
+    Write-ShitouLog "公開に成功しました。"
 } else {
-    Write-Host "[daily-b] publish が終了コード $pub のため、話数は進めません(次回同じ話を再試行します)。"
+    Send-ShitouNotify ("公開: publish が終了コード $pub。話数は進めていません。" +
+        "19:30 と 21:30 に自動で再試行します。")
 }
 
-# --- 5. 成果計測 ---
-uv run python -m note_autopilot --config config.b.yaml feedback
+# --- 5. 成果計測 → 分析 → 次話への改善指示 ---
+Invoke-ShitouStep -Command "feedback" -RetryOn @(8) -MaxAttempts 2 | Out-Null
+uv run python scripts\shitou_analyze.py analyze
 
 exit $pub
