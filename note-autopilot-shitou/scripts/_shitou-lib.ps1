@@ -19,14 +19,7 @@ function Send-ShitouNotify {
     param([string]$Message)
     Write-ShitouLog $Message "NOTIFY"
     try {
-        $envFile = Join-Path $script:ShitouProject ".env"
-        if (-not (Test-Path $envFile)) { return }
-        $url = $null
-        foreach ($line in Get-Content $envFile -Encoding UTF8) {
-            if ($line -match '^\s*NOTIFY_WEBHOOK_URL\s*=\s*(.+?)\s*$') {
-                $url = $Matches[1].Trim('"').Trim("'")
-            }
-        }
+        $url = Get-ShitouEnvValue -Key "NOTIFY_WEBHOOK_URL"
         if (-not $url) { return }
         $body = @{ text = "[史灯/note] $Message" } | ConvertTo-Json -Compress
         Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" `
@@ -77,6 +70,103 @@ function Invoke-ShitouStep {
         } else {
             Write-ShitouLog "$Command が終了コード $code。$MaxAttempts 回試して失敗しました。" "ERROR"
         }
+    }
+    return $code
+}
+
+function Get-ShitouEnvValue {
+    # .env から1つの値を読む。無ければ $null。
+    param([string]$Key)
+    try {
+        $envFile = Join-Path $script:ShitouProject ".env"
+        if (-not (Test-Path $envFile)) { return $null }
+        foreach ($line in Get-Content $envFile -Encoding UTF8) {
+            if ($line -match ("^\s*" + [regex]::Escape($Key) + "\s*=\s*(.+?)\s*$")) {
+                $v = $Matches[1].Trim('"').Trim("'")
+                if ($v) { return $v }
+            }
+        }
+    } catch { }
+    return $null
+}
+
+function Set-ShitouAlert {
+    <#
+      デスクトップに警告ファイルを置く。
+      NOTIFY_WEBHOOK_URL を設定していない場合、通知に気づく手段がログしかない。
+      Cookie 失効は人が直さないと復旧しないため、必ず目に入る場所に出す。
+    #>
+    param([string]$Message)
+    try {
+        $desktop = [Environment]::GetFolderPath('Desktop')
+        if (-not $desktop) { return }
+        $path = Join-Path $desktop "【note・史灯】要対応.txt"
+        $body = @(
+            "note アカウントB(史灯)の自動投稿が止まっています。",
+            "",
+            $Message,
+            "",
+            "対処:",
+            "  1. B専用のブラウザ/Chromeプロファイルで note.com にログインする",
+            "  2. F12 → Network タブ → Doc フィルタ → F5",
+            "  3. 一覧の一番上の行を右クリック → Copy → Copy as cURL (bash)",
+            "  4. PowerShell で以下を実行",
+            "     cd C:\Users\User\Documents\note-autopilot",
+            "     powershell -ExecutionPolicy Bypass -File scripts\set-cookie.ps1 -Account B",
+            "",
+            "復旧すると、このファイルは翌朝の確認時に自動で消えます。",
+            "記録日時: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+        ) -join "`r`n"
+        Set-Content -Path $path -Value $body -Encoding UTF8
+        Write-ShitouLog "デスクトップに警告ファイルを置きました: $path" "WARN"
+    } catch {
+        Write-ShitouLog "警告ファイルの作成に失敗しました: $_" "WARN"
+    }
+}
+
+function Clear-ShitouAlert {
+    try {
+        $desktop = [Environment]::GetFolderPath('Desktop')
+        if (-not $desktop) { return }
+        $path = Join-Path $desktop "【note・史灯】要対応.txt"
+        if (Test-Path $path) {
+            Remove-Item $path -Force
+            Write-ShitouLog "復旧を確認したため、デスクトップの警告ファイルを削除しました。"
+        }
+    } catch { }
+}
+
+function Invoke-ShitouGenerate {
+    <#
+      analyze / generate を実行する。Gemini の無料枠切れ(終了コード4)で失敗した場合、
+      .env に ANTHROPIC_API_KEY があれば config.b.fallback.yaml(llm.backend: api)で
+      1回だけやり直す。
+
+      キーが無ければフォールバックしない。従量課金を勝手に発生させないため。
+    #>
+    param([Parameter(Mandatory=$true)][string]$Command)
+
+    $code = Invoke-ShitouStep -Command $Command -RetryOn @(3,4,5) -MaxAttempts 3
+    if ($code -ne 4) { return $code }
+
+    $key = Get-ShitouEnvValue -Key "ANTHROPIC_API_KEY"
+    if (-not $key) {
+        Write-ShitouLog "$Command が無料枠切れ(4)。ANTHROPIC_API_KEY が未設定のためフォールバックしません。" "WARN"
+        return $code
+    }
+    $fallbackConfig = Join-Path $script:ShitouProject "config.b.fallback.yaml"
+    if (-not (Test-Path $fallbackConfig)) {
+        Write-ShitouLog "$Command が無料枠切れ(4)。config.b.fallback.yaml が無いためフォールバックしません。" "WARN"
+        return $code
+    }
+
+    Write-ShitouLog "$Command が無料枠切れ(4)。Anthropic API へフォールバックします(従量課金が発生します)。" "WARN"
+    & uv run python -m note_autopilot --config config.b.fallback.yaml $Command
+    $code = $LASTEXITCODE
+    if ($code -eq 0) {
+        Send-ShitouNotify "$Command: Gemini の無料枠切れのため Anthropic API で生成しました(課金が発生しています)。"
+    } else {
+        Write-ShitouLog "フォールバックでも $Command が終了コード $code で失敗しました。" "ERROR"
     }
     return $code
 }

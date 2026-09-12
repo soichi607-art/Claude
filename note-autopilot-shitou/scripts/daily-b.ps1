@@ -1,7 +1,7 @@
 # 史灯(アカウントB)公開パイプライン — 火・木・土 17:00 実行想定
 #
 # 設計方針: 「公開に失敗しない」ためにやっていること
-#   1. 記事は 09:00 の prepare-b.ps1 で生成済み(生成失敗と公開失敗を切り離す)
+#   1. 記事は「前日」09:00 の prepare-b.ps1 で生成済み(生成失敗と公開失敗を切り離す)
 #   2. 未生成なら、この場で生成をやり直す
 #   3. publish は待機を挟んで最大3回まで再試行する
 #   4. それでも失敗したら 19:30 / 21:30 の catchup-b.ps1 が再試行する
@@ -31,11 +31,12 @@ if ($sync -ne 0) {
 uv run python -m note_autopilot --config config.b.yaml healthcheck --live
 if ($LASTEXITCODE -ne 0) {
     Send-ShitouNotify ("公開: healthcheck --live が失敗しました。Cookie 失効の可能性が高いです。" +
-        "B専用ブラウザで note にログインし scripts\set-cookie.ps1 -Account B を実行してください。" +
         "復旧後、19:30 / 21:30 の再試行で自動的に公開されます。")
+    Set-ShitouAlert -Message "17:00 の公開前チェックで note へ接続できませんでした。Cookie の再取得が必要です。"
     # 記事は残るので、ここで止めても話数は進まない。次の機会に公開される。
     exit 10
 }
+Clear-ShitouAlert
 
 # --- 3. 記事が未生成なら、この場で作る ---
 uv run python scripts\shitou_state.py is-prepared
@@ -43,14 +44,14 @@ if ($LASTEXITCODE -ne 0) {
     Write-ShitouLog "記事が未生成のため、ここで生成します。"
     Invoke-ShitouStep -Command "collect" -RetryOn @(8) -MaxAttempts 2 | Out-Null
 
-    $code = Invoke-ShitouStep -Command "analyze" -RetryOn @(3,4) -MaxAttempts 3
+    $code = Invoke-ShitouGenerate -Command "analyze"
     if ($code -eq 2) { exit 2 }
     if ($code -ne 0) {
         Send-ShitouNotify "公開: analyze が終了コード $code で失敗し、本日の公開ができません。"
         exit $code
     }
 
-    $code = Invoke-ShitouStep -Command "generate" -RetryOn @(3,4,5) -MaxAttempts 3
+    $code = Invoke-ShitouGenerate -Command "generate"
     if ($code -eq 2) { exit 2 }
     if ($code -ne 0) {
         Send-ShitouNotify ("公開: generate が終了コード $code で失敗し、本日の公開ができません。" +

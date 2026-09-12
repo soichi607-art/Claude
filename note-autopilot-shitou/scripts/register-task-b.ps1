@@ -2,7 +2,7 @@
 #
 # 登録されるタスク:
 #   note-autopilot-healthcheck-b  毎日 08:00        疎通確認(Cookie失効の早期発見)
-#   note-autopilot-prepare-b      火・木・土 09:00  記事の事前生成
+#   note-autopilot-prepare-b      月・水・金 09:00  記事の事前生成(公開の前日)
 #   note-autopilot-daily-b        火・木・土 17:00  公開
 #   note-autopilot-catchup-b      火・木・土 19:30  公開の再試行
 #   note-autopilot-catchup2-b     火・木・土 21:30  公開の再試行(2回目)
@@ -25,8 +25,11 @@ if ($stale) {
     $stale | Unregister-ScheduledTask -Confirm:$false
 }
 
+# StartWhenAvailable: PC が落ちていて実行できなかったタスクを、起動後に取り返す
+# WakeToRun:          スリープ中なら PC を起こして実行する(電源接続とBIOS設定が前提)
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries `
+    -WakeToRun `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2)
 
 function Register-ShitouTask {
@@ -41,14 +44,16 @@ function Register-ShitouTask {
 
 # 投稿日: 火・木・土(A の月水金日、SoA の火金18:30 と時刻が重ならないようにしている)
 $postDays = @('Tuesday', 'Thursday', 'Saturday')
+# 生成日: 投稿の前日(月・水・金)。生成失敗に丸一日以上の猶予を持たせるため。
+$prepDays = @('Monday', 'Wednesday', 'Friday')
 
 Register-ShitouTask -Name "note-autopilot-healthcheck-b" -Script "healthcheck-b.ps1" `
     -Trigger (New-ScheduledTaskTrigger -Daily -At 08:00) `
     -Description "史灯(B) 毎日の疎通確認。Cookie失効を投稿前に検知する"
 
 Register-ShitouTask -Name "note-autopilot-prepare-b" -Script "prepare-b.ps1" `
-    -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek $postDays -At 09:00) `
-    -Description "史灯(B) 記事の事前生成。公開の8時間前に用意する"
+    -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek $prepDays -At 09:00) `
+    -Description "史灯(B) 記事の事前生成。公開の前日に用意する"
 
 Register-ShitouTask -Name "note-autopilot-daily-b" -Script "daily-b.ps1" `
     -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek $postDays -At 17:00) `

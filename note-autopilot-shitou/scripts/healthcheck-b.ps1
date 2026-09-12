@@ -9,6 +9,8 @@ Enter-ShitouProject
 
 if (Test-ShitouStopped) {
     Send-ShitouNotify "ヘルスチェック: 緊急停止中(data_b/STOP)です。STOPファイルを手動削除するまで投稿は行われません。"
+    Set-ShitouAlert -Message ("緊急停止中です(data_b\STOP が存在します)。" +
+        "原因を確認したうえで、このファイルを手動で削除しないと投稿は再開しません。")
     exit 2
 }
 
@@ -17,7 +19,9 @@ $code = $LASTEXITCODE
 
 if ($code -eq 0) {
     Write-ShitouLog "ヘルスチェック 異常なし"
+    Clear-ShitouAlert
 } else {
+    Set-ShitouAlert -Message "毎朝の接続確認が失敗しました(終了コード $code)。このままでは次の投稿日に公開できません。"
     Send-ShitouNotify ("ヘルスチェックが終了コード $code で失敗しました。" +
         "Cookie 失効の可能性があります。B専用ブラウザで note にログインし、" +
         "scripts\set-cookie.ps1 -Account B を実行してください。" +
