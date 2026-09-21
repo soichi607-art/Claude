@@ -1,0 +1,3 @@
+# Windows のバッチは常に CRLF（LF だと cmd が日本語行末で改行を飲み込むことがある）
+*.bat text eol=crlf
+*.sh text eol=lf

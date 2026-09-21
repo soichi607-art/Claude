@@ -1,0 +1,17 @@
+# SoA EDM Studio
+.env
+data/
+# 実機で start スクリプト / scripts/diagnose.py が生成する（.gitignore は行内コメント不可なので別行に書く）
+docs/HARDWARE_REPORT.md
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+*.sqlite
+.venv/
+venv/
+venv_xpu/
+node_modules/
+tmp/
+tools/*
+!tools/README.txt

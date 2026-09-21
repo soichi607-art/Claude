@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}新規プロジェクト{% endblock %}
+{% block content %}
+<h1>新規プロジェクト</h1>
+<form method="post" action="/projects/new" class="card">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% include "_inputs_form.html" %}
+<button class="btn block" style="margin-top:14px">作成して3案のプロンプトを生成</button>
+</form>
+{% endblock %}
