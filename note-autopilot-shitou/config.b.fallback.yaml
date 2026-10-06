@@ -1,0 +1,133 @@
+# === アカウントB(史灯) フォールバック用 — Gemini 無料枠切れ時のみ使用 ===
+# 2026-09-11 改訂: 「AIが試したプロンプト置き場」から「史灯」へ全面変更。
+#
+# 実行例:
+#   uv run python -m note_autopilot --config config.b.yaml generate
+#
+# 重要: A(config.yaml)と prompts_dir を共有しない。史灯専用の prompts_b/ を使う。
+#       prompts_b/theme_select.txt と prompts_b/article_gen.txt は
+#       scripts/shitou_state.py sync が毎回生成する(直接編集しない)。
+
+account:
+  id: b
+  name: "史灯｜企業と街の記憶を描く連載小説"
+  env_suffix: "B"              # .env の NOTE_SESSION_COOKIE_B / NOTE_GQL_AUTH_TOKEN_B を使う
+
+data_dir: data_b
+db_path: data_b/note_autopilot.db
+prompts_dir: prompts_b         # 変更点: prompts(A と共有)→ prompts_b(史灯専用)
+
+kpi:
+  # 連載小説は1話=1記事。週3回(火・木・土)= 月13本。全10話なら約3.5週で完結
+  target_monthly_revenue_jpy: 1000000
+  target_monthly_articles: 13
+  target_monthly_views: 50000
+  target_monthly_likes: 1500
+  target_conversion_rate: 1.0
+
+llm:
+  # === フォールバック専用 ===
+  # Gemini の無料枠が切れた日だけ、このファイルを指定して生成をやり直す。
+  # 従量課金が発生するため、.env に ANTHROPIC_API_KEY がある場合のみ使われる。
+  # それ以外の設定は config.b.yaml と完全に同じにすること(データ先・話数がずれるため)。
+  backend: api
+
+rate_limit:
+  min_interval_seconds: 5.0
+  jitter_max_seconds: 3.0
+  daily_limit: 300
+
+guardian:
+  stop_file: data_b/STOP
+
+publisher:
+  publish_mode: "full"
+  backup_dir: backup_b
+  # 連載小説は毎話同じシリーズタグを付ける(読者が第1話に遡れるようにするため)
+  default_hashtags: ["連載小説", "小説", "企業小説", "社会派", "史灯"]
+  paid_enabled: false
+
+generator:
+  model: claude-opus-4-8
+  output_dir: output_b/drafts
+  hold_dir: output_b/hold
+  quality_gate:
+    # 採点の4軸名(fact/value/unique/safety)はコード側の JSON スキーマに合わせて維持し、
+    # 各軸が「小説として何を見るか」だけを prompts_b/quality_gate.txt で再定義している。
+    # 公開できない最大の原因はここ。80点未満の話は公開されず output_b/hold/ に残る。
+    # prepare-b.ps1 / daily-b.ps1 が generate を最大3回やり直すため、
+    # 1回の投稿日につき最大6本の下書きが試される(3回 × max_attempts 2回)。
+    # それでも通らない日が続く場合にだけ、この値を 75 へ下げる(品質との引き換え)。
+    min_score: 80
+    max_attempts: 2
+    # --- 以下3つが小説運用のための変更点(理由を必ず読むこと) ---
+    min_chars: 2800            # 変更: 1500 → 2800。各話3,000〜5,000字の下限を守るため
+    min_headings: 0            # 変更: 3 → 0。小説本文に見出しは立てないため
+    max_similarity: 0.92       # 変更: 0.5 → 0.92。連載は前話と語彙・人物名が重複するため
+    recent_articles: 30
+    ng_words:
+      - "絶対に儲かる"
+      - "必ず稼げる"
+      - "元本保証"
+      - "誰でも簡単に月100万"
+      - "確実に痩せる"
+  # 変更: 時事リサーチは無効。史実調査は series/shitou_series.json 側で完結させ、
+  # 毎話の本文に時事ネタが混入するのを防ぐ。
+  research_enabled: false
+  research_days: 45
+  research_max_items: 6
+
+promoter:
+  x_enabled: false
+  model: claude-opus-4-8
+  patterns: 3
+  daily_limit: 12
+  min_interval_seconds: 5.0
+  morning_hour: 8
+  # 実アカウントのURLに合わせて設定すること(B のIDを変更した場合はここも変える)
+  article_url_template: "https://note.com/tsukaeru_prompt/n/{key}"
+
+feedback:
+  promo_window_hours: 72
+  top_percentile: 0.9
+  min_articles_for_advice: 5
+  bandit_epsilon: 0.2
+
+ledger:
+  payment_fee_rate: 0.05
+  platform_fee_rate: 0.10
+  output_dir: output_b/ledger
+
+imagegen:
+  width: 1280
+  height: 670
+
+collector:
+  # 連載小説はトレンドから題材を選ばない。収集は「止めない」が、
+  # theme_select 側で候補を使わない設計にしている(パイプラインの形を壊さないため)。
+  collector_live: true
+  rss_feeds: []
+  google_trends:
+    # A(生成AI/副業/note収益化/AI画像生成/ChatGPT活用)と重複させない
+    keywords: ["連載小説", "企業小説", "社会派小説"]
+    geo: JP
+    timeframe: "now 7-d"
+  note_api:
+    search_keywords: ["連載小説", "企業小説", "社会派小説"]
+    hashtags: ["連載小説", "小説"]
+    search_size: 20
+
+analyzer:
+  window_days: 7
+  top_n: 20
+  theme_count: 1               # 変更: 3 → 1。1回の実行で書くのは「次の1話」だけ
+  model: claude-opus-4-8
+  specialty_genres: ["連載小説", "企業小説", "社会派小説"]
+  # 変更: 5 → 0。連載は毎話 keyword が同じになるため、直近キーワード回避を無効化する。
+  # これを 0 にしないと2話目以降がテーマ選定で弾かれる。
+  avoid_recent_keywords: 0
+  weights:
+    growth_rate: 0.4
+    competition: 0.2
+    paid_ratio: 0.2
+    genre_bonus: 0.2
