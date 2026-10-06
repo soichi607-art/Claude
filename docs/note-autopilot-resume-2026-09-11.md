@@ -191,3 +191,49 @@ Get-ScheduledTask -TaskName 'note-autopilot-*' | Select-Object TaskName, State
 - note 側の非公式 API が 2026-09 時点でも 2026-07 の実検証どおり動くか
 - 史灯に切り替えたのが A / B のどちらか
 - note アカウントの現在のプロフィール実物(このセッションから note にはログインできません)
+
+---
+
+## 8. 追記(2026-10-06): 共有された note ID `soa_komeyoshi` の確認状況
+
+### 確認できなかったこと
+
+利用者から `https://note.com/soa_komeyoshi` が共有されましたが、**アカウントの中身
+(表示名・自己紹介・フォロワー数・記事一覧)はクラウドセッションから確認できていません。**
+
+| 試したこと(2026-10-06 07:06〜07:09 UTC) | 結果 |
+|---|---|
+| `https://note.com/api/v2/creators/soa_komeyoshi` ほか記事一覧 API | 環境のネットワークポリシーで拒否(プロキシが CONNECT に 403) |
+| `https://note.com/soa_komeyoshi`(WebFetch) | `EGRESS_BLOCKED`(note.com がブロック対象) |
+| Wayback Machine(archive.org)・テキスト化プロキシ | 同様にプロキシで拒否 |
+| Web 検索 `"soa_komeyoshi" note`、`site:note.com` 指定 | 該当するページは検索結果に出てこなかった |
+
+### リポジトリ内で確認できた事実(判断材料。アカウント自体の確認ではない)
+
+- 株式会社SoA のブランドは「米善(こめよし)/ KOMEYOSHI」、EC は `soa-komeyoshi.com`
+  (出典: `docs/yamagen-call-prep-2026-08-24.html`、`docs/khp830-redesign.html`)。
+- つまり ID `soa_komeyoshi` は **SoA の社名とブランド名の組み合わせと一致**します。
+  一方、史灯(アカウントB、企業・社会派の歴史小説)との名前上の関連は見当たりません。
+- ただし、**その ID の note アカウントが誰のもので何が載っているかは未確認**です。
+
+### 未決定事項(利用者の判断待ち)
+
+| 選択肢 | 変更対象 |
+|---|---|
+| A: SoA の ID に採用 | 本書 §2 の `soa_agri`(案)→ `soa_komeyoshi`、PC 側 `config.soa.yaml` の記事 URL |
+| B: 史灯(アカウントB)に使う | `note-autopilot-shitou/config.b.yaml` と `config.b.fallback.yaml` の `article_url_template` |
+| C: 記録のみ | なし |
+
+### PC で確認する手順(note.com に届く環境で実行)
+
+```powershell
+cd C:\Users\User\Documents\note-autopilot
+uv run python scripts\note_profile_check.py soa_komeyoshi
+```
+
+- ログイン不要・Cookie を使わない読み取り専用の確認です。結果は
+  `output_b\account_checks\note-account-check-<UTC日時>.md` と `.json` に取得日時・取得元 URL 付きで残ります。
+- note から 401 / 403 / 429 を受けた時点で全処理を止めます(終了コード 2、リトライなし)。
+  本体の STOP ファイルには触れません。
+- note の API は非公式です。項目名が変わっていた場合は「取得できず」と表示し、推測で埋めません。
+  その場合は同名の `.json` の `raw` を確認してください。

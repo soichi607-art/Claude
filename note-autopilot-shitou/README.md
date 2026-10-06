@@ -131,6 +131,7 @@ uv run python scripts\shitou_analyze.py schema
 | `series/shitou_series.json` | 新規。作品設定(人物・全話プロット・伏線・史実と創作の区別) |
 | `scripts/shitou_state.py` | 新規。話数管理とプロンプト生成 |
 | `scripts/shitou_analyze.py` | 新規。分析と改善指示の生成 |
+| `scripts/note_profile_check.py` | 新規。note ID の公開プロフィール・記事一覧をログインなしで読み取り、取得日時付きで記録(読み取り専用・定期実行しない) |
 | `scripts/_shitou-lib.ps1` | 新規。共通関数(リトライ・通知・ログ) |
 | `scripts/healthcheck-b.ps1` | 新規。毎日 08:00 |
 | `scripts/prepare-b.ps1` | 新規。火木土 09:00 |
@@ -179,7 +180,11 @@ powershell -ExecutionPolicy Bypass -File scripts\register-task-b.ps1
 
 1. B のプロフィール(クリエイター名・自己紹介・アイコン・ヘッダー)を史灯に変更
 2. **B の note ID を変更した場合**、`config.b.yaml` の `promoter.article_url_template` を
-   実際のIDに合わせて更新する(現在は `tsukaeru_prompt` のまま)
+   実際のIDに合わせて更新する(現在は `tsukaeru_prompt` のまま)。
+   変更前に、その ID が意図したアカウントかを次で確認する(読み取りのみ、Cookie 不使用):
+   ```powershell
+   uv run python scripts\note_profile_check.py <新しいID> tsukaeru_prompt
+   ```
 3. Cookie を取り直す(`_note_session_v5` と `note_gql_auth_token` の両方):
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\set-cookie.ps1 -Account B
